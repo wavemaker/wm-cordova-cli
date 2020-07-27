@@ -6,7 +6,7 @@ class OutputPipe {
     constructor(bufferSize, log) {
         this.output = '';
         this.content = [];
-        this.bufferSize = bufferSize;
+        this.bufferSize = bufferSize || 100;
         this.logOutput = (log !== false);
     }
     log(str) {
@@ -14,6 +14,9 @@ class OutputPipe {
         str.split('\n').forEach((v, i, splits) => {
             if (i < splits.length - 1) {
                 v && this.logOutput && logger.debug({label: loggerLabel, message: v});
+                if (this.content.length > this.bufferSize) {
+                    this.content.shift();
+                }
                 this.content.push(v);
             } else {
                 reminder = v;
@@ -33,6 +36,7 @@ class OutputPipe {
 
 module.exports = {
     'exec': (cmd, args, options) => {
+        //logger.debug({label: loggerLabel, message: "executing: " + cmd + ' ' + args && args.join(' ')});
         const outputPipe = new OutputPipe(100, options && options.log);
         const spawn = execa(cmd, args, options);
         spawn.stdout.on('data', (data) => {

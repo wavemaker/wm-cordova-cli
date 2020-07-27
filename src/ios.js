@@ -6,6 +6,7 @@ const {
 
 const logger = require('./logger');
 const loggerLabel = 'ios-build';
+const path = require('path');
 
 async function importCertToKeyChain(keychainName, certificate, certificatePassword) {
     await exec('security', ['create-keychain', '-p', keychainName, keychainName], {log: false});
@@ -54,7 +55,7 @@ function validate(certificate, password, provisionalFilePath, packageType) {
 }
 
 module.exports = {
-    build: async (options) => {
+    build: async (args) => {
         const {
             cordovaIosVersion,
             projectDir, 
@@ -62,7 +63,7 @@ module.exports = {
             certificatePassword, 
             provisionalFile,
             packageType 
-        } = options;
+        } = args;
         const errors = validate(certificate, certificatePassword, provisionalFile, packageType);
         if (errors.length > 0) {
             return {
@@ -78,7 +79,7 @@ module.exports = {
             label: loggerLabel,
             message: `provisional UUID : ${provisionuuid}`
         });
-        const codeSignIdentity = "iPhone Developer";
+        const codeSignIdentity = packageType === 'production' ? "iPhone Distribution" : "iPhone Developer";
         const developmentTeamId = await extractTeamId(provisionalFile);
         logger.info({
             label: loggerLabel,
@@ -95,6 +96,7 @@ module.exports = {
             label: loggerLabel,
             message: `copied provisionalFile (${provisionalFile}).`
         });
+
         await exec('cordova', ['platform', 'add', `ios@${cordovaIosVersion}`, '--verbose'], {
             cwd: projectDir
         });
@@ -105,15 +107,16 @@ module.exports = {
         await exec('cordova', ['prepare', 'ios', '--verbose'], {
             cwd: projectDir
         });
+        const projectInfo = require(projectDir + 'package.json');
         logger.info({
             label: loggerLabel,
             message: 'Prepared for cordova ios'
         });
-
         await exec('cordova', [
             'build', 'ios', '--verbose', '--device',
+            packageType === 'production' ? '--release' : '--debug',
             `--codeSignIdentity=${codeSignIdentity}`,
-            `--packageType=${packageType}`,
+            `--packageType=${packageType === 'production' ? 'app-store' : 'development'}`,
             `--developmentTeam=${developmentTeamId}`,
             `--provisioningProfile=${provisionuuid}`
         ], {
@@ -128,13 +131,13 @@ module.exports = {
             label: loggerLabel,
             message: `removed keychain (${keychainName}).`
         });
-        fs.removeSync(targetProvisionsalPath);
+        /*fs.removeSync(targetProvisionsalPath);
         logger.info({
             label: loggerLabel,
             message: `removed provisionalFile (${provisionalFile}).`
-        });
+        });*/
         const output =  projectDir + 'output/ios/';
-        const outputFilePath = output + packageType +'.ipa';
+        const outputFilePath = `${output}${projectInfo.displayName || projectInfo.name}(${projectInfo.version}).${packageType}.ipa`;
         fs.mkdirSync(output, {recursive: true});
         fs.copyFileSync(findFile(projectDir + 'platforms/ios/build/device', /\.ipa?/), outputFilePath);
         return {

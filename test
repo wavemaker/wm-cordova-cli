@@ -1,0 +1,30 @@
+xcodebuild -list -workspace HelloCordova.xcworkspace
+xcodebuild -list -project  HelloCordova.xcodeproj
+xcodebuild -scheme HelloCordova DSTROOT="/Users/sboyina/work/cordova-workspace/builds/hello-world/platforms/ios/build" archive
+
+
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/../../../../../../usr/local/lib/node_modules/cordova/bin/cordova",
+            "args": [
+                "build", "ios", "--verbose",
+                "--release", "--device", "--codeSignIdentity=iPhone Distribution",
+                "--packageType=app-store",
+                "--developmentTeam=2Z3NE6K2GX",
+                "--provisioningProfile=685b00e8-be4d-40b1-9ea4-5013c727fdcf"
+            ],
+            "console": "integratedTerminal"
+        }
+    ]
+}
