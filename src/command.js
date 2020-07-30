@@ -3,7 +3,12 @@ const ios = require('./ios');
 const android = require('./android');
 const logger = require('./logger');
 const config = require('./config');
-const { endWith } = require('./utils');
+const {
+    endWith
+} = require('./utils');
+const {
+    exec
+} = require('./exec');
 const et = require('elementtree');
 const path = require('path');
 
@@ -21,19 +26,31 @@ function setupBuildDirectory(src, dest) {
     fs.copySync(src, dest);
 }
 
-function updatePackageJson(dest, cordovaIosVersion, cordovaAndroidVersion) {
+function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordovaAndroidVersion) {
     const projectDir = dest;
     const packageJsonPath = `${projectDir}package.json`;
-    const packageJson = fs.existsSync(packageJsonPath) ? require(packageJsonPath): {};
-    const data = fs.readFileSync(projectDir +  'config.xml').toString();
+    const packageJson = fs.existsSync(packageJsonPath) ? require(packageJsonPath) : {};
+    const data = fs.readFileSync(projectDir + 'config.xml').toString();
     const config = et.parse(data);
-    packageJson.name = packageJson.name ||config.getroot().attrib['id'];
+    packageJson.name = packageJson.name || config.getroot().attrib['id'];
     packageJson.displayName = packageJson.displayName || config.findtext('./name');
     packageJson.description = packageJson.description || config.findtext('./description');
     packageJson.version = packageJson.version || config.getroot().attrib['version'];
     packageJson.dependencies = packageJson.dependencies || {};
-    packageJson.dependencies['cordova-ios'] = packageJson.dependencies['cordova-ios'] || cordovaIosVersion;
-    packageJson.dependencies['cordova-android'] = packageJson.dependencies['cordova-android'] || cordovaAndroidVersion;
+    packageJson.devDependencies = packageJson.devDependencies || {};
+    if (cordovaVersion) {
+        packageJson.devDependencies['cordova'] = cordovaVersion;
+    }
+    packageJson.devDependencies['cordova-ios'] = packageJson.devDependencies['cordova-ios'] || cordovaIosVersion;
+    packageJson.devDependencies['cordova-android'] = packageJson.devDependencies['cordova-android'] || cordovaAndroidVersion;
+    /*config.findall('./plugin').forEach(e => {
+        const name = e.attrib['name'];
+        let spec = e.attrib['spec'];
+        if (spec.startsWith('http')) {
+            spec = 'git+' + spec;
+        }
+        packageJson.devDependencies[name] = packageJson.devDependencies[name] || spec;
+    });*/
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 }
 
@@ -41,17 +58,26 @@ function updatePackageJson(dest, cordovaIosVersion, cordovaAndroidVersion) {
 module.exports = {
     build: async function (args) {
         setupBuildDirectory(args.src, args.dest);
-        updatePackageJson(args.dest, args.cordovaIosVersion, args.cordovaAndroidVersion);
+        updatePackageJson(args.dest, args.cordovaVersion, args.cordovaIosVersion, args.cordovaAndroidVersion);
         config.src = args.dest;
         config.outputDirectory = config.src + 'output/';
-        fs.mkdirSync(config.outputDirectory, {recursive: true});
+        fs.mkdirSync(config.outputDirectory, {
+            recursive: true
+        });
         config.logDirectory = config.outputDirectory + 'logs/';
-        fs.mkdirSync(config.logDirectory, {recursive: true});
+        fs.mkdirSync(config.logDirectory, {
+            recursive: true
+        });
         logger.setLogDirectory(config.logDirectory);
+        const cordovaToUse = args.cordovaVersion ? config.src + 'node_modules/cordova/bin/cordova' : 'cordova';
 
+        await exec('npm', ['install'], {
+            cwd: config.src
+        });
 
         if (args.platform === 'android') {
             const result = await android.build({
+                cordova: cordovaToUse,
                 cordovaAndroidVersion: args.cordovaAndroidVersion,
                 projectDir: args.dest,
                 keyStore: args.aKeyStore,
@@ -71,14 +97,16 @@ module.exports = {
                     message: 'Android BUILD SUCCEEDED'
                 });
             }
-        } else if (args.platform ==='ios') {
+        } else if (args.platform === 'ios') {
             const result = await ios.build({
+                cordova: cordovaToUse,
                 cordovaIosVersion: args.cordovaIosVersion,
                 projectDir: args.dest,
                 certificate: args.iCertificate,
                 certificatePassword: args.iCertificatePassword,
                 provisionalFile: args.iProvisioningFile,
-                packageType: args.packageType});
+                packageType: args.packageType
+            });
             if (result.errors && result.errors.length) {
                 logger.error({
                     label: loggerLabel,

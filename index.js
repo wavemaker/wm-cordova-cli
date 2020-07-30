@@ -24,6 +24,10 @@ const args = require('yargs')
             normalize: true
         });
     })
+    .option('cv', {
+        alias: 'cordovaVersion',
+        describe: 'Cordova  Version'
+    })
     .option('cav', {
         alias: 'cordovaAndroidVersion',
         describe: 'Cordova Android Version',

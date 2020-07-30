@@ -57,6 +57,7 @@ function validate(certificate, password, provisionalFilePath, packageType) {
 module.exports = {
     build: async (args) => {
         const {
+            cordova,
             cordovaIosVersion,
             projectDir, 
             certificate, 
@@ -97,14 +98,14 @@ module.exports = {
             message: `copied provisionalFile (${provisionalFile}).`
         });
 
-        await exec('cordova', ['platform', 'add', `ios@${cordovaIosVersion}`, '--verbose'], {
+        await exec(cordova, ['platform', 'add', `ios@${cordovaIosVersion}`, '--verbose'], {
             cwd: projectDir
         });
         logger.info({
             label: loggerLabel,
             message: 'Added cordova ios'
         });
-        await exec('cordova', ['prepare', 'ios', '--verbose'], {
+        await exec(cordova, ['prepare', 'ios', '--verbose'], {
             cwd: projectDir
         });
         const projectInfo = require(projectDir + 'package.json');
@@ -112,7 +113,7 @@ module.exports = {
             label: loggerLabel,
             message: 'Prepared for cordova ios'
         });
-        await exec('cordova', [
+        await exec(cordova, [
             'build', 'ios', '--verbose', '--device',
             packageType === 'production' ? '--release' : '--debug',
             `--codeSignIdentity=${codeSignIdentity}`,

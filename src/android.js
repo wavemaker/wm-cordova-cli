@@ -41,6 +41,7 @@ const validate = (keyStore, storePassword, keyAlias, keyPassword) => {
 module.exports = {
     build: async (args) => {
         const {
+            cordova,
             projectDir,
             keyAlias,
             keyPassword,
@@ -56,14 +57,14 @@ module.exports = {
                 errors: errors
             }
         }
-        await exec('cordova', ['platform', 'add', `android@${cordovaAndroidVersion}`, '--verbose'], {
+        await exec(cordova, ['platform', 'add', `android@${cordovaAndroidVersion}`, '--verbose'], {
             cwd: projectDir
         });
         logger.info({
             label: loggerLabel,
             message: 'Added cordova android'
         });
-        await exec('cordova', ['prepare', 'android', '--verbose'], {
+        await exec(cordova, ['prepare', 'android', '--verbose'], {
             cwd: projectDir
         });
         const projectInfo = require(projectDir + 'package.json');
@@ -81,7 +82,7 @@ module.exports = {
             keyPassword,
             buildType
         );
-        await exec('cordova', [
+        await exec(cordova, [
             'build', 'android', '--verbose',
             '--' + buildType,
             `--buildConfig=${settingsPath}`

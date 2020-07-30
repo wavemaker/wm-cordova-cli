@@ -36,7 +36,7 @@ class OutputPipe {
 
 module.exports = {
     'exec': (cmd, args, options) => {
-        //logger.debug({label: loggerLabel, message: "executing: " + cmd + ' ' + args && args.join(' ')});
+        logger.debug({label: loggerLabel, message: "executing: " + cmd + ' ' + args && args.join(' ')});
         const outputPipe = new OutputPipe(100, options && options.log);
         const spawn = execa(cmd, args, options);
         spawn.stdout.on('data', (data) => {
