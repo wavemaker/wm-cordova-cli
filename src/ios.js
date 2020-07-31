@@ -3,7 +3,7 @@ const { findFile } = require('./utils');
 const {
     exec
 } = require('./exec');
-
+const semver = require('semver');
 const logger = require('./logger');
 const loggerLabel = 'ios-build';
 const path = require('path');
@@ -58,6 +58,7 @@ module.exports = {
     build: async (args) => {
         const {
             cordova,
+            cordovaVersion,
             cordovaIosVersion,
             projectDir, 
             certificate, 
@@ -76,11 +77,16 @@ module.exports = {
         const username = await getUsername();
         const keychainName = `appBuild-${random}.keychain`;
         const provisionuuid =  await extractUUID(provisionalFile);
+        let useModernBuildSystem = 'YES';
         logger.info({
             label: loggerLabel,
             message: `provisional UUID : ${provisionuuid}`
         });
         const codeSignIdentity = packageType === 'production' ? "iPhone Distribution" : "iPhone Developer";
+
+        if (semver.satisfies(cordovaVersion, '8.x')) {
+            useModernBuildSystem = 'NO';
+        }
         const developmentTeamId = await extractTeamId(provisionalFile);
         logger.info({
             label: loggerLabel,
@@ -116,12 +122,14 @@ module.exports = {
         await exec(cordova, [
             'build', 'ios', '--verbose', '--device',
             packageType === 'production' ? '--release' : '--debug',
-            `--codeSignIdentity=${codeSignIdentity}`,
-            `--packageType=${packageType === 'production' ? 'app-store' : 'development'}`,
-            `--developmentTeam=${developmentTeamId}`,
-            `--provisioningProfile=${provisionuuid}`
+            `--codeSignIdentity="${codeSignIdentity}"`,
+            `--packageType="${packageType === 'production' ? 'app-store' : 'development'}"`,
+            `--developmentTeam="${developmentTeamId}"`,
+            `--provisioningProfile="${provisionuuid}"`,
+            `--buildFlag="-UseModernBuildSystem=${useModernBuildSystem}"`
         ], {
-            cwd: projectDir
+            cwd: projectDir,
+            shell: true
         });
         logger.info({
             label: loggerLabel,

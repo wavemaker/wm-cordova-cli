@@ -70,7 +70,7 @@ module.exports = {
         });
         logger.setLogDirectory(config.logDirectory);
         const cordovaToUse = args.cordovaVersion ? config.src + 'node_modules/cordova/bin/cordova' : 'cordova';
-
+        const cordovaVersion = args.cordovaVersion || (await exec('cordova', ['--version'])).join('').match(/[0-9][0-9\.]+/)[0];
         await exec('npm', ['install'], {
             cwd: config.src
         });
@@ -78,6 +78,7 @@ module.exports = {
         if (args.platform === 'android') {
             const result = await android.build({
                 cordova: cordovaToUse,
+                cordovaVersion: cordovaVersion,
                 cordovaAndroidVersion: args.cordovaAndroidVersion,
                 projectDir: args.dest,
                 keyStore: args.aKeyStore,
@@ -100,6 +101,7 @@ module.exports = {
         } else if (args.platform === 'ios') {
             const result = await ios.build({
                 cordova: cordovaToUse,
+                cordovaVersion: cordovaVersion,
                 cordovaIosVersion: args.cordovaIosVersion,
                 projectDir: args.dest,
                 certificate: args.iCertificate,
