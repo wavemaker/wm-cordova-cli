@@ -11,6 +11,7 @@ const {
 } = require('./exec');
 const et = require('elementtree');
 const path = require('path');
+const npmCache = require('./npm-cache');
 
 const loggerLabel = 'wm-cordova-cli';
 
@@ -26,7 +27,7 @@ function setupBuildDirectory(src, dest) {
     fs.copySync(src, dest);
 }
 
-function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordovaAndroidVersion) {
+async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordovaAndroidVersion) {
     const projectDir = dest;
     const packageJsonPath = `${projectDir}package.json`;
     const packageJson = fs.existsSync(packageJsonPath) ? require(packageJsonPath) : {};
@@ -43,14 +44,18 @@ function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordovaAndro
     }
     packageJson.devDependencies['cordova-ios'] = packageJson.devDependencies['cordova-ios'] || cordovaIosVersion;
     packageJson.devDependencies['cordova-android'] = packageJson.devDependencies['cordova-android'] || cordovaAndroidVersion;
-    /*config.findall('./plugin').forEach(e => {
-        const name = e.attrib['name'];
-        let spec = e.attrib['spec'];
-        if (spec.startsWith('http')) {
-            spec = 'git+' + spec;
-        }
-        packageJson.devDependencies[name] = packageJson.devDependencies[name] || spec;
-    });*/
+    await Promise.all(config.findall('./plugin').map(e => {
+        return Promise.resolve().then(() => {
+            const name = e.attrib['name'];
+            let spec = e.attrib['spec'];
+            if (spec.startsWith('http')) {
+                return npmCache.get(name, spec).then(spec => {
+                    packageJson.devDependencies[name] = packageJson.devDependencies[name] || spec;
+                });
+            }
+            packageJson.devDependencies[name] = packageJson.devDependencies[name] || spec;
+        });
+    }));
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 }
 
@@ -58,7 +63,8 @@ function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordovaAndro
 module.exports = {
     build: async function (args) {
         setupBuildDirectory(args.src, args.dest);
-        updatePackageJson(args.dest, args.cordovaVersion, args.cordovaIosVersion, args.cordovaAndroidVersion);
+        await updatePackageJson(args.dest, args.cordovaVersion, args.cordovaIosVersion, args.cordovaAndroidVersion);
+
         config.src = args.dest;
         config.outputDirectory = config.src + 'output/';
         fs.mkdirSync(config.outputDirectory, {
@@ -74,7 +80,6 @@ module.exports = {
         await exec('npm', ['install'], {
             cwd: config.src
         });
-
         if (args.platform === 'android') {
             const result = await android.build({
                 cordova: cordovaToUse,

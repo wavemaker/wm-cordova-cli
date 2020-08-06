@@ -14,9 +14,11 @@
   "author": "WaveMaker Inc.,",
   "license": "MIT",
   "dependencies": {
+    "axios": "^0.19.2",
     "elementtree": "^0.1.7",
     "execa": "^4.0.3",
     "fs-extra": "^9.0.1",
+    "md5": "^2.3.0",
     "semver": "^7.3.2",
     "winston": "^3.3.3",
     "yargs": "^15.4.0"
