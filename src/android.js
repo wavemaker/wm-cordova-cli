@@ -40,7 +40,7 @@ const validate = (keyStore, storePassword, keyAlias, keyPassword) => {
 
 module.exports = {
     build: async (args) => {
-        const {
+        let {
             cordova,
             projectDir,
             keyAlias,
@@ -50,6 +50,12 @@ module.exports = {
             cordovaAndroidVersion,
             packageType
         } = args;
+        if (packageType === 'development' && !keyStore) {
+            keyStore = __dirname + '/../defaults/android-debug.keystore';
+            keyAlias = 'androiddebugkey';
+            keyPassword = 'android';
+            storePassword = 'android';
+        }
         const errors = validate(keyStore, storePassword, keyAlias, keyPassword);
         if (errors.length > 0) {
             return {

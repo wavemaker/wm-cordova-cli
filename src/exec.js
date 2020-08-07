@@ -3,17 +3,18 @@ const logger = require('./logger');
 const loggerLabel = 'exec';
 
 class OutputPipe {
-    constructor(bufferSize, log) {
+    constructor(bufferSize, log, loggerLabel) {
         this.output = '';
         this.content = [];
         this.bufferSize = bufferSize || 100;
         this.logOutput = (log !== false);
+        this.loggerLabel = loggerLabel;
     }
     log(str) {
         let reminder = '';
         str.split('\n').forEach((v, i, splits) => {
             if (i < splits.length - 1) {
-                v && this.logOutput && logger.debug({label: loggerLabel, message: v});
+                v && this.logOutput && logger.debug({label: this.loggerLabel, message: v});
                 if (this.content.length > this.bufferSize) {
                     this.content.shift();
                 }
@@ -36,8 +37,8 @@ class OutputPipe {
 
 module.exports = {
     'exec': (cmd, args, options) => {
-        logger.debug({label: loggerLabel, message: "executing: " + cmd + ' ' + args && args.join(' ')});
-        const outputPipe = new OutputPipe(100, options && options.log);
+        //logger.debug({label: loggerLabel, message: 'executing: ' + cmd + ' ' + (args && args.join(' '))});
+        const outputPipe = new OutputPipe(100, options && options.log, cmd.substr(cmd.lastIndexOf('/') + 1));
         const spawn = execa(cmd, args, options);
         spawn.stdout.on('data', (data) => {
             outputPipe.push(String.fromCharCode.apply(null, new Uint16Array(data)));

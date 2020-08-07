@@ -80,8 +80,11 @@ module.exports = {
         await exec('npm', ['install'], {
             cwd: config.src
         });
+        let result = {
+            success: false
+        };
         if (args.platform === 'android') {
-            const result = await android.build({
+            result = await android.build({
                 cordova: cordovaToUse,
                 cordovaVersion: cordovaVersion,
                 cordovaAndroidVersion: args.cordovaAndroidVersion,
@@ -92,19 +95,8 @@ module.exports = {
                 keyPassword: args.aKeyPassword,
                 packageType: args.packageType
             });
-            if (result.errors && result.errors.length) {
-                logger.error({
-                    label: loggerLabel,
-                    message: 'Android build failed due to: \n\t' + result.errors.join('\n\t')
-                });
-            } else {
-                logger.info({
-                    label: loggerLabel,
-                    message: 'Android BUILD SUCCEEDED'
-                });
-            }
         } else if (args.platform === 'ios') {
-            const result = await ios.build({
+            result = await ios.build({
                 cordova: cordovaToUse,
                 cordovaVersion: cordovaVersion,
                 cordovaIosVersion: args.cordovaIosVersion,
@@ -114,17 +106,23 @@ module.exports = {
                 provisionalFile: args.iProvisioningFile,
                 packageType: args.packageType
             });
-            if (result.errors && result.errors.length) {
-                logger.error({
-                    label: loggerLabel,
-                    message: 'iOS build failed due to: \n\t' + result.errors.join('\n\t')
-                });
-            } else {
-                logger.info({
-                    label: loggerLabel,
-                    message: 'iOS BUILD SUCCEEDED : please check the file at :' + result.output
-                });
-            }
         }
+        if (result.errors && result.errors.length) {
+            logger.error({
+                label: loggerLabel,
+                message: args.platform + ' build failed due to: \n\t' + result.errors.join('\n\t')
+            });
+        } else if(!result.success){
+            logger.error({
+                label: loggerLabel,
+                message: args.platform + ' BUILD FAILED'
+            });
+        } else {
+            logger.info({
+                label: loggerLabel,
+                message: args.platform + ' BUILD SUCCEEDED. check the file at :' + result.output
+            });
+        }
+        return result;
     }
 };
