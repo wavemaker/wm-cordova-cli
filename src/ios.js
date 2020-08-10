@@ -92,7 +92,11 @@ module.exports = {
             label: loggerLabel,
             message: `developmentTeamId : ${developmentTeamId}`
         });
-        const targetProvisionsalPath = `/Users/${username}/Library/MobileDevice/Provisioning\ Profiles/${provisionuuid}.mobileprovision`;
+        const ppFolder = `/Users/${username}/Library/MobileDevice/Provisioning\ Profiles`;
+        fs.mkdirSync(ppFolder, {
+            recursive: true
+        })
+        const targetProvisionsalPath = `${ppFolder}/${provisionuuid}.mobileprovision`;
         await importCertToKeyChain(keychainName, certificate, certificatePassword);
         logger.info({
             label: loggerLabel,
