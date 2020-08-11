@@ -2,7 +2,7 @@ const fs = require('fs-extra');
 const execa = require('execa');
 const md5 = require('md5');
 const axios = require('axios');
-const cacheDir = __dirname + '/../.cache';
+const cacheDir =  require('os').homedir() + '/.wm-cordova-cli/npm-cache';
 
 const getLocalPath = async (module, version, gitUrl) => {
     const folderPath = cacheDir + '/' + module + '/' + version;
