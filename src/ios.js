@@ -9,8 +9,8 @@ const loggerLabel = 'ios-build';
 const path = require('path');
 
 async function importCertToKeyChain(keychainName, certificate, certificatePassword) {
-    await exec('security', ['create-keychain', '-p', keychainName, keychainName], {log: false});
-    await exec('security', ['unlock-keychain', '-p', keychainName, keychainName], {log: false});
+    //await exec('security', ['create-keychain', '-p', keychainName, keychainName], {log: false});
+    //await exec('security', ['unlock-keychain', '-p', keychainName, keychainName], {log: false});
     await exec('security', ['import',  certificate,  '-k', keychainName, '-P', certificatePassword], {log: false});
 }
 
@@ -75,7 +75,8 @@ module.exports = {
         }
         const random = Date.now();
         const username = await getUsername();
-        const keychainName = `appBuild-${random}.keychain`;
+        //const keychainName = `appBuild-${random}.keychain`;
+        const keychainName = `login.keychain`;
         const provisionuuid =  await extractUUID(provisionalFile);
         let useModernBuildSystem = 'YES';
         logger.info({
@@ -139,12 +140,12 @@ module.exports = {
             label: loggerLabel,
             message: 'build completed'
         });
-        await deleteKeyChain(keychainName);
+        /*await deleteKeyChain(keychainName);
         logger.info({
             label: loggerLabel,
             message: `removed keychain (${keychainName}).`
         });
-        /*fs.removeSync(targetProvisionsalPath);
+        fs.removeSync(targetProvisionsalPath);
         logger.info({
             label: loggerLabel,
             message: `removed provisionalFile (${provisionalFile}).`

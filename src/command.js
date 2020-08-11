@@ -62,67 +62,75 @@ async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordov
 
 module.exports = {
     build: async function (args) {
-        setupBuildDirectory(args.src, args.dest);
-        await updatePackageJson(args.dest, args.cordovaVersion, args.cordovaIosVersion, args.cordovaAndroidVersion);
+        try {
+            setupBuildDirectory(args.src, args.dest);
+            await updatePackageJson(args.dest, args.cordovaVersion, args.cordovaIosVersion, args.cordovaAndroidVersion);
 
-        config.src = args.dest;
-        config.outputDirectory = config.src + 'output/';
-        fs.mkdirSync(config.outputDirectory, {
-            recursive: true
-        });
-        config.logDirectory = config.outputDirectory + 'logs/';
-        fs.mkdirSync(config.logDirectory, {
-            recursive: true
-        });
-        logger.setLogDirectory(config.logDirectory);
-        const cordovaToUse = args.cordovaVersion ? config.src + 'node_modules/cordova/bin/cordova' : 'cordova';
-        const cordovaVersion = args.cordovaVersion || (await exec('cordova', ['--version'])).join('').match(/[0-9][0-9\.]+/)[0];
-        await exec('npm', ['install'], {
-            cwd: config.src
-        });
-        let result = {
-            success: false
-        };
-        if (args.platform === 'android') {
-            result = await android.build({
-                cordova: cordovaToUse,
-                cordovaVersion: cordovaVersion,
-                cordovaAndroidVersion: args.cordovaAndroidVersion,
-                projectDir: args.dest,
-                keyStore: args.aKeyStore,
-                storePassword: args.aStorePassword,
-                keyAlias: args.aKeyAlias,
-                keyPassword: args.aKeyPassword,
-                packageType: args.packageType
+            config.src = args.dest;
+            config.outputDirectory = config.src + 'output/';
+            fs.mkdirSync(config.outputDirectory, {
+                recursive: true
             });
-        } else if (args.platform === 'ios') {
-            result = await ios.build({
-                cordova: cordovaToUse,
-                cordovaVersion: cordovaVersion,
-                cordovaIosVersion: args.cordovaIosVersion,
-                projectDir: args.dest,
-                certificate: args.iCertificate,
-                certificatePassword: args.iCertificatePassword,
-                provisionalFile: args.iProvisioningFile,
-                packageType: args.packageType
+            config.logDirectory = config.outputDirectory + 'logs/';
+            fs.mkdirSync(config.logDirectory, {
+                recursive: true
             });
-        }
-        if (result.errors && result.errors.length) {
+            logger.setLogDirectory(config.logDirectory);
+            const cordovaToUse = args.cordovaVersion ? config.src + 'node_modules/cordova/bin/cordova' : 'cordova';
+            const cordovaVersion = args.cordovaVersion || (await exec('cordova', ['--version'])).join('').match(/[0-9][0-9\.]+/)[0];
+            await exec('npm', ['install'], {
+                cwd: config.src
+            });
+            let result = {
+                success: false
+            };
+            if (args.platform === 'android') {
+                result = await android.build({
+                    cordova: cordovaToUse,
+                    cordovaVersion: cordovaVersion,
+                    cordovaAndroidVersion: args.cordovaAndroidVersion,
+                    projectDir: args.dest,
+                    keyStore: args.aKeyStore,
+                    storePassword: args.aStorePassword,
+                    keyAlias: args.aKeyAlias,
+                    keyPassword: args.aKeyPassword,
+                    packageType: args.packageType
+                });
+            } else if (args.platform === 'ios') {
+                result = await ios.build({
+                    cordova: cordovaToUse,
+                    cordovaVersion: cordovaVersion,
+                    cordovaIosVersion: args.cordovaIosVersion,
+                    projectDir: args.dest,
+                    certificate: args.iCertificate,
+                    certificatePassword: args.iCertificatePassword,
+                    provisionalFile: args.iProvisioningFile,
+                    packageType: args.packageType
+                });
+            }
+            if (result.errors && result.errors.length) {
+                logger.error({
+                    label: loggerLabel,
+                    message: args.platform + ' build failed due to: \n\t' + result.errors.join('\n\t')
+                });
+            } else if (!result.success) {
+                logger.error({
+                    label: loggerLabel,
+                    message: args.platform + ' BUILD FAILED'
+                });
+            } else {
+                logger.info({
+                    label: loggerLabel,
+                    message: args.platform + ' BUILD SUCCEEDED. check the file at :' + result.output
+                });
+            }
+            return result;
+        } catch (e) {
             logger.error({
                 label: loggerLabel,
-                message: args.platform + ' build failed due to: \n\t' + result.errors.join('\n\t')
+                message: args.platform + ' BUILD Failed. Due to :' + e
             });
-        } else if(!result.success){
-            logger.error({
-                label: loggerLabel,
-                message: args.platform + ' BUILD FAILED'
-            });
-        } else {
-            logger.info({
-                label: loggerLabel,
-                message: args.platform + ' BUILD SUCCEEDED. check the file at :' + result.output
-            });
+            return { success : false };
         }
-        return result;
     }
 };
