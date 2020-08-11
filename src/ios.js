@@ -83,7 +83,8 @@ module.exports = {
         const random = Date.now();
         const username = await getUsername();
         //const keychainName = `appBuild-${random}.keychain`;
-        const keychainName = await getLoginKeyChainName();
+        //const keychainName = await getLoginKeyChainName();
+        const keychainName = 'login.keychain';
         const provisionuuid =  await extractUUID(provisionalFile);
         let useModernBuildSystem = 'YES';
         logger.info({
