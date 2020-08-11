@@ -27,6 +27,13 @@ async function extractUUID(provisionalFile) {
     return content.join('\n').match(/[-A-F0-9]{36}/i)[0];
 }
 
+async function getLoginKeyChainName() {
+    const content = await exec('security list-keychains | grep login.keychain', null, {
+        shell: true
+    });
+    return content[0].substring(content[0].lastIndexOf('/') + 1, content[0].indexOf('-'));
+}
+
 async function extractTeamId(provisionalFile) {
     const content = await exec('grep', ['TeamIdentifier', '-A2', '-a', provisionalFile], {log: false});
     return content[2].match(/>[A-Z0-9]+/i)[0].substr(1);
@@ -76,7 +83,7 @@ module.exports = {
         const random = Date.now();
         const username = await getUsername();
         //const keychainName = `appBuild-${random}.keychain`;
-        const keychainName = `login.keychain`;
+        const keychainName = await getLoginKeyChainName();
         const provisionuuid =  await extractUUID(provisionalFile);
         let useModernBuildSystem = 'YES';
         logger.info({
