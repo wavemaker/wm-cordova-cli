@@ -31,7 +31,7 @@ async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordov
     const projectDir = dest;
     const packageJsonPath = `${projectDir}package.json`;
     const packageJson = fs.existsSync(packageJsonPath) ? require(packageJsonPath) : {};
-    const data = fs.readFileSync(projectDir + 'config.xml').toString();
+    let data = fs.readFileSync(projectDir + 'config.xml').toString();
     const config = et.parse(data);
     packageJson.name = packageJson.name || config.getroot().attrib['id'];
     packageJson.displayName = packageJson.displayName || config.findtext('./name');
@@ -40,23 +40,25 @@ async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordov
     packageJson.dependencies = packageJson.dependencies || {};
     packageJson.devDependencies = packageJson.devDependencies || {};
     if (cordovaVersion) {
-        packageJson.devDependencies['cordova'] = cordovaVersion;
+        packageJson.dependencies['cordova'] = cordovaVersion;
     }
-    packageJson.devDependencies['cordova-ios'] = packageJson.devDependencies['cordova-ios'] || cordovaIosVersion;
-    packageJson.devDependencies['cordova-android'] = packageJson.devDependencies['cordova-android'] || cordovaAndroidVersion;
+    packageJson.dependencies['cordova-ios'] = packageJson.dependencies['cordova-ios'] || cordovaIosVersion;
+    packageJson.dependencies['cordova-android'] = packageJson.dependencies['cordova-android'] || cordovaAndroidVersion;
     await Promise.all(config.findall('./plugin').map(e => {
         return Promise.resolve().then(() => {
             const name = e.attrib['name'];
             let spec = e.attrib['spec'];
             if (spec.startsWith('http')) {
-                return npmCache.get(name, spec).then(spec => {
-                    packageJson.devDependencies[name] = packageJson.devDependencies[name] || spec;
+                return npmCache.get(name, spec).then(cache => {
+                    if (spec != cache) {
+                        data = data.replace(spec, cache);
+                    }
                 });
             }
-            packageJson.devDependencies[name] = packageJson.devDependencies[name] || spec;
         });
     }));
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+    fs.writeFileSync(projectDir + 'config.xml', data);
 }
 
 
@@ -65,7 +67,6 @@ module.exports = {
         try {
             setupBuildDirectory(args.src, args.dest);
             await updatePackageJson(args.dest, args.cordovaVersion, args.cordovaIosVersion, args.cordovaAndroidVersion);
-
             config.src = args.dest;
             config.outputDirectory = config.src + 'output/';
             fs.mkdirSync(config.outputDirectory, {
