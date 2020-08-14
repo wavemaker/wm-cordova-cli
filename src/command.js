@@ -27,6 +27,11 @@ function setupBuildDirectory(src, dest) {
     fs.copySync(src, dest);
 }
 
+function getFileSize(path) {
+    const stats = path && fs.statSync(path);
+    return (stats && stats['size']) || 0;
+}
+
 async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordovaAndroidVersion) {
     const projectDir = dest;
     const packageJsonPath = `${projectDir}package.json`;
@@ -122,7 +127,11 @@ module.exports = {
             } else {
                 logger.info({
                     label: loggerLabel,
-                    message: args.platform + ' BUILD SUCCEEDED. check the file at :' + result.output
+                    message: `${args.platform} BUILD SUCCEEDED. check the file at : ${result.output}.`
+                });
+                logger.info({
+                    label: loggerLabel,
+                    message: `File size : ${Math.round(getFileSize(result.output) * 100 / (1024 * 1024)) / 100} MB.`
                 });
             }
             return result;
