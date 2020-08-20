@@ -70,6 +70,18 @@ async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordov
 module.exports = {
     build: async function (args) {
         try {
+            if (args.src.endsWith('.zip')) {
+                const zipFile = args.src;
+                args.src = path.dirname(args.src) + '/build_' + Date.now();
+                await exec('unzip', [
+                    '-o',
+                    zipFile,
+                    '-d',
+                    args.src
+                ])
+            }
+            args.src = path.resolve(args.src) + '/';
+            args.dest = path.resolve(args.dest || (args.src) + '../build') + '/';
             setupBuildDirectory(args.src, args.dest);
             await updatePackageJson(args.dest, args.cordovaVersion, args.cordovaIosVersion, args.cordovaAndroidVersion);
             config.src = args.dest;

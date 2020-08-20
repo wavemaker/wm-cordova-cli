@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const {
     build
 } = require('./src/command');
@@ -11,22 +12,20 @@ const args = require('yargs')
         });
         yargs.positional('src', {
             describe: 'path of cordova project',
-            coerce: (v) => endWith(v, '/'),
             default: './',
             type: 'string',
             normalize: true
         });
         yargs.positional('dest', {
-            coerce: (v) => endWith(v, '/'),
             describe: 'path of build directory',
-            default: '../build',
             type: 'string',
             normalize: true
         });
     })
     .option('cv', {
         alias: 'cordovaVersion',
-        describe: 'Cordova  Version'
+        describe: 'Cordova  Version',
+        default: '9.0.0'
     })
     .option('cav', {
         alias: 'cordovaAndroidVersion',
@@ -36,7 +35,7 @@ const args = require('yargs')
     .option('civ', {
         alias: 'cordovaIosVersion',
         describe: 'Cordova iOS Version',
-        default: '6.1.0'
+        default: '5.1.1'
     })
     .option('aks', {
         alias: 'aKeyStore',
@@ -76,6 +75,7 @@ const args = require('yargs')
     .option('p', {
         alias: 'packageType',
         describe: 'development (or) release',
+        default: 'development',
         choices: ['development', 'production']
     })
     .help('h')
