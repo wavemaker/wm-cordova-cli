@@ -1,6 +1,8 @@
 # wm-cordova-cli
 
-The main goal of wm-cordova-cli is simplify generating APK or IPA simpler for WaveMaker developers. Wm-cordova-cli reduces multiple cordova commands into a single command. First, one has to make sure all the required hardware and software are available and installed. Then execute the command with the appropriate values for arguments. At present, wm-cordova-cli is supported only on mac os.
+A command line untility to build mobile apps created using WaveMaker product.
+
+The main goal of wm-cordova-cli is to simplify generation of APK or IPA for WaveMaker developers. ```wm-cordova-cli``` combines multiple cordova commands into a single command. First, one has to make sure all the required hardware and software are available and installed. Then execute the command with the appropriate values for arguments. At present, wm-cordova-cli is supported only on mac os.
 
 
 ## ANDROID build
