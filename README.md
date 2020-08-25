@@ -55,16 +55,16 @@ wm-cordova build android <src_dir> <dest_dir> [additional_arguments]
 ### Example 1
 
 ~~~
-wm-cordova build android “/path/to/src”
+wm-cordova build android "/path/to/src"
 ~~~
 ### Example 2    
 ~~~
-wm-cordova build android “/path/to/src” \
---aKeyStore=”/path/to/file.keystore” \
---aStorePassword=”store_password” \
---aKeyAlias=”key_alias_name” \
---aKeyPassword=”key” \
---packageType=”production”
+wm-cordova build android "/path/to/src" \
+--aKeyStore="/path/to/file.keystore" \
+--aStorePassword="store_password" \
+--aKeyAlias="key_alias_name" \
+--aKeyPassword="key" \
+--packageType="production"
 ~~~
 
 ## IOS build
@@ -110,11 +110,11 @@ wm-cordova build ios <src_dir> <dest_dir> [additional_arguments]
 
   
 ~~~
-wm-cordova build ios “/path/to/src” \
---iCertificate=”/path/to/distribution.p12” \
---iCertificatePassword=”unlock_password” \
---iProvisioningFile=”/path/to/profile.mobileprovision” \
---packageType=”production”
+wm-cordova build ios "/path/to/src" \
+--iCertificate="/path/to/distribution.p12" \
+--iCertificatePassword="unlock_password" \
+--iProvisioningFile="/path/to/profile.mobileprovision" \
+--packageType="production"
 ~~~
 
 ## License
