@@ -24,18 +24,15 @@ const args = require('yargs')
     })
     .option('cv', {
         alias: 'cordovaVersion',
-        describe: 'Cordova  Version',
-        default: '9.0.0'
+        describe: 'Cordova  Version'
     })
     .option('cav', {
         alias: 'cordovaAndroidVersion',
-        describe: 'Cordova Android Version',
-        default: '8.0.0'
+        describe: 'Cordova Android Version'
     })
     .option('civ', {
         alias: 'cordovaIosVersion',
-        describe: 'Cordova iOS Version',
-        default: '5.1.1'
+        describe: 'Cordova iOS Version'
     })
     .option('aks', {
         alias: 'aKeyStore',

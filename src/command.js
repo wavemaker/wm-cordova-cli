@@ -15,6 +15,12 @@ const npmCache = require('./npm-cache');
 
 const loggerLabel = 'wm-cordova-cli';
 
+const PHONEGAP_CLI = {
+    'cli-9.0.0' : ['9.0.0', '8.0.0', '5.1.1'],
+    'cli-8.1.1' : ['8.1.1', '7.1.2', '4.5.5'],
+    'cli-8.0.0' : ['8.0.0', '7.0.0', '4.5.4']
+};
+
 
 function setupBuildDirectory(src, dest) {
     const target = dest;
@@ -66,6 +72,20 @@ async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordov
     fs.writeFileSync(projectDir + 'config.xml', data);
 }
 
+function setPreferences(projectDir, args) {
+    let data = fs.readFileSync(projectDir + 'config.xml').toString();
+    const config = et.parse(data);
+    const preferences = config.findall('./preference');
+    const preferenceValue = (pName) => {
+        const sp = preferences.find(p => p.attrib['name'] === pName);
+        return sp && sp.attrib['value'];
+    };
+    const phonegapCli = PHONEGAP_CLI[preferenceValue('phonegap-version')] || [];
+    args.cordovaVersion = args.cordovaVersion || args.cv || preferenceValue('wm-cordova') || phonegapCli[0];
+    args.cordovaAndroidVersion = args.cordovaAndroidVersion || args.cav ||preferenceValue('wm-cordova-android') || phonegapCli[1];
+    args.cordovaIosVersion = args.cordovaIosVersion || args.civ ||preferenceValue('wm-cordova-ios') || phonegapCli[2];
+}
+
 
 module.exports = {
     build: async function (args) {
@@ -81,8 +101,9 @@ module.exports = {
                 ])
             }
             args.src = path.resolve(args.src) + '/';
-            args.dest = path.resolve(args.dest || (args.src) + '../build') + '/';
+            args.dest = path.resolve(args.dest || (args.src) + `../build-${args.platform}`) + '/';
             setupBuildDirectory(args.src, args.dest);
+            setPreferences(args.dest, args);
             await updatePackageJson(args.dest, args.cordovaVersion, args.cordovaIosVersion, args.cordovaAndroidVersion);
             config.src = args.dest;
             config.outputDirectory = config.src + 'output/';
@@ -152,6 +173,7 @@ module.exports = {
                 label: loggerLabel,
                 message: args.platform + ' BUILD Failed. Due to :' + e
             });
+            console.error(e);
             return { success : false };
         }
     }
