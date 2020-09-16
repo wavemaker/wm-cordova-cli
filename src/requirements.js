@@ -6,7 +6,6 @@ const {
 const loggerLabel = 'cordova-cli-requirements';
 const semver = require('semver');
 const prompt = require('prompt');
-
 const VERSIONS = {
     'NODE': '12.0.0',
     'JAVA': '1.8.0',
