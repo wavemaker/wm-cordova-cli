@@ -12,24 +12,26 @@ const {
 const et = require('elementtree');
 const path = require('path');
 const npmCache = require('./npm-cache');
-
+const { showConfirmation } = require('./requirements');
 const loggerLabel = 'wm-cordova-cli';
-
 const PHONEGAP_CLI = {
     'cli-9.0.0' : ['9.0.0', '8.0.0', '5.1.1'],
     'cli-8.1.1' : ['8.1.1', '7.1.2', '4.5.5'],
     'cli-8.0.0' : ['8.0.0', '7.0.0', '4.5.4']
 };
 
-
-function setupBuildDirectory(src, dest) {
+async function setupBuildDirectory(src, dest) {
     const target = dest;
     if (fs.existsSync(target)) {
-        fs.rmdirSync(target, {
-            recursive: true
-        });
+        if (fs.readdirSync(target).length) {
+            const response = await showConfirmation('Would you like to empty the dest folder (i.e. ' + dest + ') ?');
+            if (response !== 'y' && response !== 'yes') {
+                return false;
+            }
+            fs.removeSync(target);
+        }
     }
-    fs.mkdirSync(target);
+    fs.mkdirsSync(target);
     fs.copySync(src, dest);
 }
 
@@ -90,9 +92,16 @@ function setPreferences(projectDir, args) {
 module.exports = {
     build: async function (args) {
         try {
+            let folderName = args.src.split('/').pop();
+            const isZipFile = folderName.endsWith('.zip');
+
+            folderName = isZipFile ? folderName.replace('.zip', '') : folderName;
+
+            const tmp = `${require('os').homedir()}/.wm-cordova-cli/build/${folderName}/${Date.now()}`;
+
             if (args.src.endsWith('.zip')) {
                 const zipFile = args.src;
-                args.src = path.dirname(args.src) + '/build_' + Date.now();
+                args.src = tmp + '/src';
                 await exec('unzip', [
                     '-o',
                     zipFile,
@@ -101,8 +110,8 @@ module.exports = {
                 ])
             }
             args.src = path.resolve(args.src) + '/';
-            args.dest = path.resolve(args.dest || (args.src) + `../build-${args.platform}`) + '/';
-            setupBuildDirectory(args.src, args.dest);
+            args.dest = path.resolve(args.dest || `${tmp}/build-${args.platform}`) + '/';
+            await setupBuildDirectory(args.src, args.dest);
             setPreferences(args.dest, args);
             await updatePackageJson(args.dest, args.cordovaVersion, args.cordovaIosVersion, args.cordovaAndroidVersion);
             config.src = args.dest;
