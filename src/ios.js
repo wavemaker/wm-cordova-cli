@@ -124,6 +124,9 @@ module.exports = {
             label: loggerLabel,
             message: 'Added cordova ios'
         });
+        await exec('cordova', ['requirements'], {
+            cwd: config.src
+        });
         await exec(cordova, ['prepare', 'ios', '--verbose'], {
             cwd: projectDir
         });

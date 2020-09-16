@@ -5,6 +5,13 @@ const {
 } = require('./exec');
 
 const logger = require('./logger');
+const { validate, 
+    hasValidNodeVersion,
+    hasValidJavaVersion,
+    checkForGradleAvailability,
+    isGitInstalled,
+    checkForAndroidStudioAvailability
+ } = require('./requirements');
 const loggerLabel = 'android-build';
 
 const buildSigningFile = (path, keyStore, storePassword, keyAlias, keyPassword, buildType) => {
@@ -19,23 +26,6 @@ const buildSigningFile = (path, keyStore, storePassword, keyAlias, keyPassword, 
     };
     settings.android[buildType] = siginingSettings;
     fs.writeFileSync(path, JSON.stringify(settings, null, 2));
-};
-
-const validate = (keyStore, storePassword, keyAlias, keyPassword) => {
-    let errors = [];
-    if (!(keyStore && fs.existsSync(keyStore))) {
-        errors.push(`keystore is required (valid file): ${keyStore}`);
-    }
-    if (!keyAlias) {
-        errors.push('keyAlias is required.');
-    }
-    if (!keyPassword) {
-        errors.push('keyPassword is required.');
-    }
-    if (!storePassword) {
-        errors.push('storePassword is required.');
-    }
-    return errors;
 };
 
 module.exports = {
@@ -56,13 +46,22 @@ module.exports = {
             keyPassword = 'android';
             storePassword = 'android';
         }
+        if (!await hasValidNodeVersion() || !await hasValidJavaVersion() || 
+            !await checkForGradleAvailability() || !await isGitInstalled() ||
+            !await checkForAndroidStudioAvailability()) {
+            return {
+                success: false
+            }
+        }
         const errors = validate(keyStore, storePassword, keyAlias, keyPassword);
+        
         if (errors.length > 0) {
             return {
                 success: false,
                 errors: errors
             }
         }
+
         await exec(cordova, ['platform', 'add', `android@${cordovaAndroidVersion}`, '--verbose'], {
             cwd: projectDir
         });
@@ -70,6 +69,10 @@ module.exports = {
             label: loggerLabel,
             message: 'Added cordova android'
         });
+        
+        // await exec('cordova', ['requirements'], {
+        //     cwd: projectDir
+        // });
         await exec(cordova, ['prepare', 'android', '--verbose'], {
             cwd: projectDir
         });

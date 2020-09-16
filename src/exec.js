@@ -10,11 +10,11 @@ class OutputPipe {
         this.logOutput = (log !== false);
         this.loggerLabel = loggerLabel;
     }
-    log(str) {
+    log(str, isErrorType) {
         let reminder = '';
         str.split('\n').forEach((v, i, splits) => {
             if (i < splits.length - 1) {
-                v && this.logOutput && logger.debug({label: this.loggerLabel, message: v});
+                v && (this.logOutput || isErrorType) && logger.debug({label: this.loggerLabel, message: v});
                 if (this.content.length > this.bufferSize) {
                     this.content.shift();
                 }
@@ -25,9 +25,9 @@ class OutputPipe {
         });
         return reminder;
     }
-    push(str) {
+    push(str, isErrorType) {
         if (str) {
-            this.output = this.log(this.output + str) || '';
+            this.output = this.log(this.output + str, isErrorType) || '';
         }
     }
     flush() {
@@ -44,7 +44,7 @@ module.exports = {
             outputPipe.push(String.fromCharCode.apply(null, new Uint16Array(data)));
         });
         spawn.stderr.on('data', (data) => {
-            outputPipe.push(String.fromCharCode.apply(null, new Uint16Array(data)));
+            outputPipe.push(String.fromCharCode.apply(null, new Uint16Array(data)), true);
         });
         return new Promise((resolve, reject) => {
             spawn.on('close', code => {

@@ -3,6 +3,8 @@ const {
     build
 } = require('./src/command');
 const { endWith } = require('./src/utils');
+const { check_requirements } = require('./src/requirements');
+const logger = require('./src/logger');
 
 const args = require('yargs')
     .command('build <platform> [src] [dest] [options]', 'build for target platform', yargs => {
