@@ -13,11 +13,7 @@ const et = require('elementtree');
 const path = require('path');
 const npmCache = require('./npm-cache');
 const { showConfirmation } = require('./requirements');
-
 const loggerLabel = 'wm-cordova-cli';
-
-logger.info('adsfasf');
-
 const PHONEGAP_CLI = {
     'cli-9.0.0' : ['9.0.0', '8.0.0', '5.1.1'],
     'cli-8.1.1' : ['8.1.1', '7.1.2', '4.5.5'],

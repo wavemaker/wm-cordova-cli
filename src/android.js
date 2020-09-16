@@ -5,7 +5,8 @@ const {
 } = require('./exec');
 
 const logger = require('./logger');
-const { validate, 
+const { 
+    validate, 
     hasValidNodeVersion,
     hasValidJavaVersion,
     checkForGradleAvailability,
@@ -54,7 +55,6 @@ module.exports = {
             }
         }
         const errors = validate(keyStore, storePassword, keyAlias, keyPassword);
-        
         if (errors.length > 0) {
             return {
                 success: false,
