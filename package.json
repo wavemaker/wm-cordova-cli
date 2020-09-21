@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "command line tool to easily build a wavemaker mobile project",
   "main": "index.js",
+  "preferGlobal": true,
   "bin": {
     "wm-cordova": "./index.js"
   },
@@ -15,6 +16,7 @@
     "mobile"
   ],
   "author": "WaveMaker Inc.,",
+  "repository": "https://github.com/wavemaker/wm-cordova-cli",
   "license": "MIT",
   "dependencies": {
     "axios": "^0.19.2",
