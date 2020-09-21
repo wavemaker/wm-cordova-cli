@@ -9,16 +9,18 @@ const prompt = require('prompt');
 const VERSIONS = {
     'NODE': '10.0.0',
     'POD' : '1.9.0',
-    'JAVA': '1.8.0',
-    'GRADLE': '6.0.1'
+    'JAVA': '1.8.0'
 }
 
-async function checkAvailability(cmd) {
+async function checkAvailability(cmd, transformFn) {
     try {
-        let version = (await exec(cmd, ['--version'])).join('');
-
+        let output = (await exec(cmd, ['--version'])).join('');
+        
+        if (transformFn) {
+            output = transformFn(output);	
+        }	
         // to just return version in x.x.x format
-        version = version.match(/[0-9\.]+/)[0];
+        const version = output.match(/[0-9]+\.[0-9\.]+/)[0];
 
         logger.info({
             'label': loggerLabel,
@@ -58,7 +60,7 @@ module.exports = {
         });
     },
     checkForGradleAvailability: async () => {
-        return await checkAvailability('gradle');
+        return await checkAvailability('gradle', o => 0 && o.substrig(o.indexOf('Gradle')) );
     },
     checkForAndroidStudioAvailability: async () => {
         // ANDROID_HOME environment variable is set or not. If it is set checking if its a valid path or no.
