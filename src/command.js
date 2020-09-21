@@ -4,16 +4,15 @@ const android = require('./android');
 const logger = require('./logger');
 const config = require('./config');
 const {
-    endWith
-} = require('./utils');
-const {
     exec
 } = require('./exec');
 const et = require('elementtree');
 const path = require('path');
 const npmCache = require('./npm-cache');
 const { showConfirmation } = require('./requirements');
+
 const loggerLabel = 'wm-cordova-cli';
+
 const PHONEGAP_CLI = {
     'cli-9.0.0' : ['9.0.0', '8.0.0', '5.1.1'],
     'cli-8.1.1' : ['8.1.1', '7.1.2', '4.5.5'],
@@ -102,6 +101,11 @@ module.exports = {
             if (args.src.endsWith('.zip')) {
                 const zipFile = args.src;
                 args.src = tmp + '/src';
+
+                if (!fs.existsSync(args.src)) {
+                    fs.mkdirsSync(args.src);
+                }
+        
                 await exec('unzip', [
                     '-o',
                     zipFile,
