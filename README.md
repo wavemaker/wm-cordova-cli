@@ -5,7 +5,7 @@ A command line untility to build mobile apps created using WaveMaker product.
 The main goal of wm-cordova-cli is to simplify generation of APK or IPA for WaveMaker developers. ```wm-cordova-cli``` combines multiple cordova commands into a single command. First, one has to make sure all the required hardware and software are available and installed. Then execute the command with the appropriate values for arguments.
 
 
-### Cordova versions to use for the build 
+### Cordova versions used for a build 
 1. Based upon the value of 'phonegap-cli' preference value, versions mentioned in the below table are used by default.
 
 | PHONEGAP-CLI | CORDOVA | CORDOVA-ANDROID | CORDOVA-IOS |
