@@ -60,7 +60,7 @@ module.exports = {
         });
     },
     checkForGradleAvailability: async () => {
-        return await checkAvailability('gradle', o => 0 && o.substrig(o.indexOf('Gradle')) );
+        return await checkAvailability('gradle', o => o && o.substring(o.indexOf('Gradle')) );
     },
     checkForAndroidStudioAvailability: async () => {
         // ANDROID_HOME environment variable is set or not. If it is set checking if its a valid path or no.
