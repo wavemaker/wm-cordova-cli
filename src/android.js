@@ -6,7 +6,7 @@ const {
 
 const logger = require('./logger');
 const { 
-    validate, 
+    validateForAndroid, 
     hasValidNodeVersion,
     hasValidJavaVersion,
     checkForGradleAvailability,
@@ -54,7 +54,7 @@ module.exports = {
                 success: false
             }
         }
-        const errors = validate(keyStore, storePassword, keyAlias, keyPassword);
+        const errors = validateForAndroid(keyStore, storePassword, keyAlias, keyPassword);
         if (errors.length > 0) {
             return {
                 success: false,

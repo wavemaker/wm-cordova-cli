@@ -7,6 +7,12 @@ const semver = require('semver');
 const logger = require('./logger');
 const loggerLabel = 'ios-build';
 const path = require('path');
+const {
+    hasValidNodeVersion,
+    isGitInstalled,
+    isCocoaPodsIstalled,
+    validateForIos
+ } = require('./requirements');
 
 async function importCertToKeyChain(keychainName, certificate, certificatePassword) {
     //await exec('security', ['create-keychain', '-p', keychainName, keychainName], {log: false});
@@ -44,23 +50,6 @@ async function getUsername() {
     return content[0];
 }
 
-function validate(certificate, password, provisionalFilePath, packageType) {
-    let errors = [];
-    if (!(certificate && fs.existsSync(certificate))) {
-        errors.push(`p12 certificate does not exists : ${certificate}`);
-    }
-    if (!password) {
-        errors.push('password to unlock certificate is required.');
-    }
-    if (!(provisionalFilePath && fs.existsSync(provisionalFilePath))) {
-        errors.push(`Provisional file does not exists : ${provisionalFilePath}`);
-    }
-    if (!packageType) {
-        errors.push('Package type is required.');
-    }
-    return errors;
-}
-
 module.exports = {
     build: async (args) => {
         const {
@@ -73,7 +62,13 @@ module.exports = {
             provisionalFile,
             packageType 
         } = args;
-        const errors = validate(certificate, certificatePassword, provisionalFile, packageType);
+
+        if (!await hasValidNodeVersion() || !await isGitInstalled() || !await isCocoaPodsIstalled()) {
+            return {
+                success: false
+            }
+        }
+        const errors = validateForIos(certificate, certificatePassword, provisionalFile, packageType);
         if (errors.length > 0) {
             return {
                 success: false,

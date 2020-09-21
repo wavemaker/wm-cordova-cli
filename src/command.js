@@ -73,6 +73,36 @@ async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordov
     fs.writeFileSync(projectDir + 'config.xml', data);
 }
 
+async function getDefaultDestination(projectDir, platform) {
+    let data = fs.readFileSync(projectDir + 'config.xml').toString();
+    const config = et.parse(data);
+    const id = config.getroot().attrib['id'];
+    const version = config.getroot().attrib['version'];
+    const path = `${require('os').homedir()}/.wm-cordova-cli/build/${id}/${version}/${platform}`;
+    fs.mkdirSync(path, {
+        recursive: true
+    });
+    let next = 1;
+    if (fs.existsSync(path)) {
+        next = fs.readdirSync(path).reduce((a, f) => {
+            try {
+                const c = parseInt(f);
+                if (a <= c) {
+                    return a + 1;
+                }
+            } catch(e) {
+                //not a number
+            }
+            return a;
+        }, next);
+    }
+    const dest = path + '/' + next;
+    fs.mkdirSync(dest, {
+        recursive: true
+    });
+    return dest;
+}
+
 function setPreferences(projectDir, args) {
     let data = fs.readFileSync(projectDir + 'config.xml').toString();
     const config = et.parse(data);
@@ -96,7 +126,7 @@ module.exports = {
 
             folderName = isZipFile ? folderName.replace('.zip', '') : folderName;
 
-            const tmp = `${require('os').homedir()}/.wm-cordova-cli/build/${folderName}/${Date.now()}`;
+            const tmp = `${require('os').homedir()}/.wm-cordova-cli/temp/${folderName}/${Date.now()}`;
 
             if (args.src.endsWith('.zip')) {
                 const zipFile = args.src;
@@ -114,7 +144,11 @@ module.exports = {
                 ])
             }
             args.src = path.resolve(args.src) + '/';
-            args.dest = path.resolve(args.dest || `${tmp}/build-${args.platform}`) + '/';
+            args.dest = path.resolve(args.dest || (await getDefaultDestination(args.src, args.platform)))  + '/';
+            logger.info({
+                label: loggerLabel,
+                message: `Building at : ${args.dest}`
+            });
             await setupBuildDirectory(args.src, args.dest);
             setPreferences(args.dest, args);
             await updatePackageJson(args.dest, args.cordovaVersion, args.cordovaIosVersion, args.cordovaAndroidVersion);
