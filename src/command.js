@@ -88,7 +88,7 @@ async function getDefaultDestination(projectDir, platform) {
             try {
                 const c = parseInt(f);
                 if (a <= c) {
-                    return a + 1;
+                    return c + 1;
                 }
             } catch(e) {
                 //not a number
