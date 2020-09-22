@@ -173,6 +173,7 @@ module.exports = {
             logger.setLogDirectory(config.logDirectory);
             const cordovaToUse = args.cordovaVersion ? config.src + 'node_modules/cordova/bin/cordova' : 'cordova';
             const cordovaVersion = args.cordovaVersion || (await exec('cordova', ['--version'])).join('').match(/[0-9][0-9\.]+/)[0];
+            process.env.PWD = config.src;
             await exec('npm', ['install'], {
                 cwd: config.src
             });
