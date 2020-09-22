@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 const updateNotifier = require('update-notifier');
 const pkg = require('./package.json');
-updateNotifier({pkg}).notify();
+updateNotifier({
+    pkg: pkg,
+    updateCheckInterval : 60 * 60 * 1000
+}).notify({
+	defer: false
+});
 const {
     build
 } = require('./src/command');

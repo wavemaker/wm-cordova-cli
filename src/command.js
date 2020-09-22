@@ -23,11 +23,11 @@ async function setupBuildDirectory(src, dest) {
     const target = dest;
     if (fs.existsSync(target)) {
         if (fs.readdirSync(target).length) {
-            const response = await showConfirmation('Would you like to empty the dest folder (i.e. ' + dest + ') ?');
+            const response = await showConfirmation('Would you like to empty the dest folder (i.e. ' + dest + ') (yes/no) ?');
             if (response !== 'y' && response !== 'yes') {
-                return false;
+                process.exit();
             }
-            fs.removeSync(target);
+            fs.unlinkSync(target);
         }
     }
     fs.mkdirsSync(target);
@@ -144,7 +144,16 @@ module.exports = {
                 ])
             }
             args.src = path.resolve(args.src) + '/';
-            args.dest = path.resolve(args.dest || (await getDefaultDestination(args.src, args.platform)))  + '/';
+            if(!args.dest) {
+            	args.dest = await getDefaultDestination(args.src, args.platform);
+            }
+            args.dest = path.resolve(args.dest)  + '/';
+            if(args.src === args.dest) {
+                logger.error({
+                    label: loggerLabel,
+                    message: 'source and destination folders are same. Please choose a different destination.'
+                });
+            }
             logger.info({
                 label: loggerLabel,
                 message: `Building at : ${args.dest}`
