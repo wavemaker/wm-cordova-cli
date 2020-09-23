@@ -154,10 +154,6 @@ module.exports = {
                     message: 'source and destination folders are same. Please choose a different destination.'
                 });
             }
-            logger.info({
-                label: loggerLabel,
-                message: `Building at : ${args.dest}`
-            });
             await setupBuildDirectory(args.src, args.dest);
             setPreferences(args.dest, args);
             await updatePackageJson(args.dest, args.cordovaVersion, args.cordovaIosVersion, args.cordovaAndroidVersion);
@@ -171,6 +167,10 @@ module.exports = {
                 recursive: true
             });
             logger.setLogDirectory(config.logDirectory);
+            logger.info({
+                label: loggerLabel,
+                message: `Building at : ${config.src}`
+            });
             const cordovaToUse = args.cordovaVersion ? config.src + 'node_modules/cordova/bin/cordova' : 'cordova';
             const cordovaVersion = args.cordovaVersion || (await exec('cordova', ['--version'])).join('').match(/[0-9][0-9\.]+/)[0];
             process.env.PWD = config.src;
