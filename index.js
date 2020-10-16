@@ -82,6 +82,13 @@ const args = require('yargs')
         default: 'development',
         choices: ['development', 'production']
     })
+    .option('ah', {
+        alias: 'allowHooks',
+        describe: 'true or false',
+        default: false,
+        type: 'boolean'
+    })
+
     .help('h')
     .alias('h', 'help').argv;
 try {

@@ -40,6 +40,7 @@ wm-cordova build android <src_dir> <dest_dir> [additional_arguments]
 |**\-\-aKeyAlias**|Alias name of the key|
 |**\-\-aKeyPassword**|Key Password|
 |**\-\-packageType**|**DEFAULT:** development<br>development or production<br>Use ‘production’ with keystore specified.|
+|**\-\-allowHooks**|**DEFAULT:** false <br> this flag can be used to turn on and off cordova hooks functionality.|
 
   
 
@@ -68,12 +69,12 @@ wm-cordova build android "/path/to/src" \
 -   Node 10.x ([https://nodejs.org/en/blog/release/v10.18.0/](https://nodejs.org/en/download/))    
 -   GIT ([https://git-scm.com/download/mac](https://git-scm.com/download/mac))    
 -   Apple developer or distribution P12 certificates    
--   Provisioning profile    
+-   Provisioning profile
 -   Install wm-cordova-cli (npm install -g @wavemaker/wm-cordova-cli)
 -   For development build, development certificate and development provisioning file are required.
 -   For production build, distribution certificate and distribution provisioning file are required.
 
-  
+**NOTE:** Before building an app, please make sure that neither iPhone nor iPad is not connected to Mac. This is open [issue](https://github.com/apache/cordova-ios/issues/420) on cordova-ios.
 
 ### Command
 
@@ -91,6 +92,7 @@ wm-cordova build ios <src_dir> <dest_dir> [additional_arguments]
 |**\-\-iCertificatePassword**|Password to unlock the certificate.|
 |**\-\-iProvisioningFile**|Absolute path of provisioning file|
 |**\-\-packageType**|**DEFAULT:** development<bR>development or production <br>Use ‘production’ with an AppStore distribution certificate.|
+|**\-\-allowHooks**|**DEFAULT:** false <br> this flag can be used to turn on and off cordova hooks functionality.|
 
 
 ### Example

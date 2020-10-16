@@ -103,6 +103,14 @@ async function getDefaultDestination(projectDir, platform) {
     return dest;
 }
 
+function disableHooks(projectDir) {
+    const hooksRunnerPath = projectDir + 'node_modules/cordova-lib/src/hooks/HooksRunner.js';
+    let data = fs.readFileSync(hooksRunnerPath).toString();
+    const disableFn = '.fire = function(hook) { console.log(hook + \' hook disabled\'); return Promise.resolve();} || '
+    data = data.replace(/\.fire[\s]*=[\s]/, disableFn);
+    fs.writeFileSync(hooksRunnerPath, data);
+}
+
 function setPreferences(projectDir, args) {
     let data = fs.readFileSync(projectDir + 'config.xml').toString();
     const config = et.parse(data);
@@ -177,6 +185,9 @@ module.exports = {
             await exec('npm', ['install'], {
                 cwd: config.src
             });
+            if (args.cordovaVersion && !args.allowHooks) {
+                disableHooks(config.src);
+            }
             let result = {
                 success: false
             };

@@ -15,9 +15,36 @@ const {
  } = require('./requirements');
 
 async function importCertToKeyChain(keychainName, certificate, certificatePassword) {
-    //await exec('security', ['create-keychain', '-p', keychainName, keychainName], {log: false});
-    //await exec('security', ['unlock-keychain', '-p', keychainName, keychainName], {log: false});
-    await exec('security', ['import',  certificate,  '-k', keychainName, '-P', certificatePassword], {log: false});
+    await exec('security', ['create-keychain', '-p', keychainName, keychainName], {log: false});
+    await exec('security', ['unlock-keychain', '-p', keychainName, keychainName], {log: false});
+    await exec('security', ['set-keychain-settings', '-t', '3600', keychainName], {log: false});
+    let keychains = await exec('security', ['list-keychains', '-d', 'user'], {log: false});
+    keychains = keychains.map(k => k.replace(/[\"\s]+/g, '')).filter(k => k !== '');
+    console.log('keychains -> ' + keychains.join(':'));
+    await exec('security', ['list-keychains', '-d', 'user', '-s', keychainName, ...keychains], {log: false});
+    await exec('security', 
+        ['import',  
+        certificate,  
+        '-k', keychainName,
+        '-P', certificatePassword,
+        '-T', '/usr/bin/codesign',
+        '-T', '/usr/bin/productsign',
+        '-T', '/usr/bin/productbuild',
+        '-T', '/Applications/Xcode.app'], {log: false});
+    await exec('security', ['set-key-partition-list', '-S', 'apple-tool:,apple:,codesign', '-s', '-k', keychainName, keychainName], {log: false});
+    logger.info({
+        label: loggerLabel,
+        message: `Cerificate at (${certificate}) imported in (${keychainName})`
+    });
+    return async () => {
+        keychains = keychains.map(k => k.replace(/[\"\s]+/g, ''));
+        await exec('security', ['list-keychains', '-d', 'user', '-s', ...keychains], {log: false});
+        await deleteKeyChain(keychainName);
+        logger.info({
+            label: loggerLabel,
+            message: `removed keychain (${keychainName}).`
+        });
+    };
 }
 
 async function deleteKeyChain(keychainName) {
@@ -77,9 +104,10 @@ module.exports = {
         }
         const random = Date.now();
         const username = await getUsername();
-        //const keychainName = `appBuild-${random}.keychain`;
+        const keychainName = `wm-cordova-${random}.keychain`;
         //const keychainName = await getLoginKeyChainName();
-        const keychainName = 'login.keychain';
+        //const keychainName = 'login.keychain';
+        //const keychainName = 'appBuild-1603114612227.keychain';
         const provisionuuid =  await extractUUID(provisionalFile);
         let useModernBuildSystem = 'YES';
         logger.info({
@@ -101,68 +129,64 @@ module.exports = {
             recursive: true
         })
         const targetProvisionsalPath = `${ppFolder}/${provisionuuid}.mobileprovision`;
-        await importCertToKeyChain(keychainName, certificate, certificatePassword);
-        logger.info({
-            label: loggerLabel,
-            message: `Cerificate at (${certificate}) imported in a temporary keychain (${keychainName})`
-        });
+        const removeKeyChain = await importCertToKeyChain(keychainName, certificate, certificatePassword);
         fs.copyFileSync(provisionalFile, targetProvisionsalPath);
         logger.info({
             label: loggerLabel,
             message: `copied provisionalFile (${provisionalFile}).`
         });
-
-        await exec(cordova, ['platform', 'add', `ios@${cordovaIosVersion}`, '--verbose'], {
-            cwd: projectDir
-        });
-        logger.info({
-            label: loggerLabel,
-            message: 'Added cordova ios'
-        });
-        // await exec('cordova', ['requirements'], {
-        //     cwd: config.src
-        // });
-        await exec(cordova, ['prepare', 'ios', '--verbose'], {
-            cwd: projectDir
-        });
-        const projectInfo = require(projectDir + 'package.json');
-        logger.info({
-            label: loggerLabel,
-            message: 'Prepared for cordova ios'
-        });
-        await exec(cordova, [
-            'build', 'ios', '--verbose', '--device',
-            packageType === 'production' ? '--release' : '--debug',
-            `--codeSignIdentity="${codeSignIdentity}"`,
-            `--packageType="${packageType === 'production' ? 'app-store' : 'development'}"`,
-            `--developmentTeam="${developmentTeamId}"`,
-            `--provisioningProfile="${provisionuuid}"`,
-            `--buildFlag="-UseModernBuildSystem=${useModernBuildSystem}"`
-        ], {
-            cwd: projectDir,
-            shell: true
-        });
-        logger.info({
-            label: loggerLabel,
-            message: 'build completed'
-        });
-        /*await deleteKeyChain(keychainName);
-        logger.info({
-            label: loggerLabel,
-            message: `removed keychain (${keychainName}).`
-        });
-        fs.removeSync(targetProvisionsalPath);
-        logger.info({
-            label: loggerLabel,
-            message: `removed provisionalFile (${provisionalFile}).`
-        });*/
-        const output =  projectDir + 'output/ios/';
-        const outputFilePath = `${output}${projectInfo.displayName || projectInfo.name}(${projectInfo.version}).${packageType}.ipa`;
-        fs.mkdirSync(output, {recursive: true});
-        fs.copyFileSync(findFile(projectDir + 'platforms/ios/build/device', /\.ipa?/), outputFilePath);
-        return {
-            success: true,
-            output: outputFilePath
-        };
+        try {
+            await exec(cordova, ['platform', 'add', `ios@${cordovaIosVersion}`, '--verbose'], {
+                cwd: projectDir
+            });
+            logger.info({
+                label: loggerLabel,
+                message: 'Added cordova ios'
+            });
+            // await exec('cordova', ['requirements'], {
+            //     cwd: config.src
+            // });
+            await exec(cordova, ['prepare', 'ios', '--verbose'], {
+                cwd: projectDir
+            });
+            const projectInfo = require(projectDir + 'package.json');
+            logger.info({
+                label: loggerLabel,
+                message: 'Prepared for cordova ios'
+            });
+            await exec(cordova, [
+                'build', 'ios', '--verbose', '--device',
+                packageType === 'production' ? '--release' : '--debug',
+                `--codeSignIdentity="${codeSignIdentity}"`,
+                `--packageType="${packageType === 'production' ? 'app-store' : 'development'}"`,
+                `--developmentTeam="${developmentTeamId}"`,
+                `--provisioningProfile="${provisionuuid}"`,
+                `--buildFlag="-UseModernBuildSystem=${useModernBuildSystem}"`,
+                `--buildFlag="CODE_SIGN_KEYCHAIN=~/Library/Keychains/${keychainName}"`//,
+                //`--buildFlag="CODE_SIGN_IDENTITY=${codeSignIdentity}"`
+            ], {
+                cwd: projectDir,
+                shell: true
+            });
+            logger.info({
+                label: loggerLabel,
+                message: 'build completed'
+            });
+            const output =  projectDir + 'output/ios/';
+            const outputFilePath = `${output}${projectInfo.displayName || projectInfo.name}(${projectInfo.version}).${packageType}.ipa`;
+            fs.mkdirSync(output, {recursive: true});
+            fs.copyFileSync(findFile(projectDir + 'platforms/ios/build/device', /\.ipa?/), outputFilePath);
+            return {
+                success: true,
+                output: outputFilePath
+            };
+        } finally {
+            await removeKeyChain();
+            /*fs.removeSync(targetProvisionsalPath);
+            logger.info({
+                label: loggerLabel,
+                message: `removed provisionalFile (${provisionalFile}).`
+            });*/
+        }
     }
 }
