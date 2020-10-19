@@ -20,7 +20,6 @@ async function importCertToKeyChain(keychainName, certificate, certificatePasswo
     await exec('security', ['set-keychain-settings', '-t', '3600', keychainName], {log: false});
     let keychains = await exec('security', ['list-keychains', '-d', 'user'], {log: false});
     keychains = keychains.map(k => k.replace(/[\"\s]+/g, '')).filter(k => k !== '');
-    console.log('keychains -> ' + keychains.join(':'));
     await exec('security', ['list-keychains', '-d', 'user', '-s', keychainName, ...keychains], {log: false});
     await exec('security', 
         ['import',  
@@ -105,9 +104,6 @@ module.exports = {
         const random = Date.now();
         const username = await getUsername();
         const keychainName = `wm-cordova-${random}.keychain`;
-        //const keychainName = await getLoginKeyChainName();
-        //const keychainName = 'login.keychain';
-        //const keychainName = 'appBuild-1603114612227.keychain';
         const provisionuuid =  await extractUUID(provisionalFile);
         let useModernBuildSystem = 'YES';
         logger.info({
@@ -143,9 +139,6 @@ module.exports = {
                 label: loggerLabel,
                 message: 'Added cordova ios'
             });
-            // await exec('cordova', ['requirements'], {
-            //     cwd: config.src
-            // });
             await exec(cordova, ['prepare', 'ios', '--verbose'], {
                 cwd: projectDir
             });
@@ -162,8 +155,7 @@ module.exports = {
                 `--developmentTeam="${developmentTeamId}"`,
                 `--provisioningProfile="${provisionuuid}"`,
                 `--buildFlag="-UseModernBuildSystem=${useModernBuildSystem}"`,
-                `--buildFlag="CODE_SIGN_KEYCHAIN=~/Library/Keychains/${keychainName}"`//,
-                //`--buildFlag="CODE_SIGN_IDENTITY=${codeSignIdentity}"`
+                `--buildFlag="CODE_SIGN_KEYCHAIN=~/Library/Keychains/${keychainName}"`
             ], {
                 cwd: projectDir,
                 shell: true
