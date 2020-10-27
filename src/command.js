@@ -49,6 +49,10 @@ async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordov
     packageJson.displayName = packageJson.displayName || config.findtext('./name');
     packageJson.description = packageJson.description || config.findtext('./description');
     packageJson.version = packageJson.version || config.getroot().attrib['version'];
+    packageJson.version = (() => {
+        const splits = packageJson.version.split('.');
+        return ['0', '0', '0'].map((v, i) => splits[i] || v).join('.'); 
+    })();
     packageJson.dependencies = packageJson.dependencies || {};
     packageJson.devDependencies = packageJson.devDependencies || {};
     if (cordovaVersion) {
