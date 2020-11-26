@@ -6,6 +6,7 @@ const config = require('./config');
 const {
     exec
 } = require('./exec');
+const execa = require('execa');
 const et = require('elementtree');
 const path = require('path');
 const npmCache = require('./npm-cache');
@@ -39,6 +40,17 @@ function getFileSize(path) {
     return (stats && stats['size']) || 0;
 }
 
+const extractZip = async(zip, dest) => {
+    return execa('unzip', [
+        '-o',
+        zip,
+        '-d',
+        dest
+    ], {
+        stdio: process.stdio
+    });
+};
+
 async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordovaAndroidVersion) {
     const projectDir = dest;
     const packageJsonPath = `${projectDir}package.json`;
@@ -70,9 +82,25 @@ async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordov
                         data = data.replace(spec, cache);
                     }
                 });
+            } else if(spec.endsWith('.zip')) {
+                const extractFolder = dest + 'cordova-plugins/' + name + '/';
+                fs.mkdirSync(extractFolder, {
+                    recursive: true
+                });
+                return extractZip(dest + 'www/cordova-plugins/'+ spec, extractFolder)
+                    .then(() => {
+                        const target = fs.readdirSync(extractFolder).find(c => {
+                            const d = extractFolder + c;
+                            return fs.statSync(d).isDirectory() && fs.existsSync(d + '/package.json');
+                        });
+                        data = data.replace(spec, 'file://' + extractFolder + target);
+                    });
             }
         });
     }));
+    if (fs.existsSync(dest + 'www/cordova-plugins')) {
+        await exec('rm', ['-rf', dest + 'www/cordova-plugins']);
+    }
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
     fs.writeFileSync(projectDir + 'config.xml', data);
 }
