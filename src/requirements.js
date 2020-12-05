@@ -27,7 +27,7 @@ async function checkAvailability(cmd) {
         const requiredVersion = VERSIONS[cmd.toUpperCase()];
         version = semver.coerce(version).version;
         if (requiredVersion && semver.lt(version, requiredVersion)) {
-            logger.error('MinimumcheckAvailability ' + cmd + ' version required is ' + requiredVersion + '. Please update the version.');
+            logger.error('Minimum ' + cmd + ' version required is ' + requiredVersion + '. Please update the version.');
             return false;
         }
         return version;
