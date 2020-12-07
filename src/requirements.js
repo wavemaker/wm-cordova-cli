@@ -1,4 +1,5 @@
 const fs = require('fs');
+const os = require('os');
 const logger = require('./logger');
 const {
     exec
@@ -27,6 +28,7 @@ async function checkAvailability(cmd, transformFn) {
             'message': cmd + ' version available is ' + version
         })
         const requiredVersion = VERSIONS[cmd.toUpperCase()];
+        version = semver.coerce(version).version;
         if (requiredVersion && semver.lt(version, requiredVersion)) {
             logger.error('Minimum ' + cmd + ' version required is ' + requiredVersion + '. Please update the version.');
             return false;
@@ -34,6 +36,7 @@ async function checkAvailability(cmd, transformFn) {
         return version;
     } catch(e) {
         console.error(e);
+        logger.error('Observing error while checking ' + cmd.toUpperCase() + ' availability');
         return false;
     }
 }
@@ -87,7 +90,10 @@ module.exports = {
                 '\nTry update it manually to point to valid SDK directory.'});
             return false;
         }
-        const sdkPath = envVariable + '/tools/bin/sdkmanager';
+        let sdkPath = envVariable + '/tools/bin/sdkmanager';
+
+        // file extension has to be added for windows os for existsSync to work.
+        sdkPath = os.type().includes('Windows') ? sdkPath + '.bat' : sdkPath;
 
         if (!fs.existsSync(sdkPath)) {
             logger.error({
