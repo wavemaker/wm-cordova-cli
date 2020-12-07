@@ -21,7 +21,7 @@ async function checkAvailability(cmd, transformFn) {
             output = transformFn(output);	
         }	
         // to just return version in x.x.x format
-        const version = output.match(/[0-9]+\.[0-9\.]+/)[0];
+        let version = output.match(/[0-9]+\.[0-9\.]+/)[0];
 
         logger.info({
             'label': loggerLabel,
