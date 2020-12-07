@@ -1,6 +1,6 @@
 {
   "name": "@wavemaker/wm-cordova-cli",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "command line tool to easily build a wavemaker mobile project",
   "main": "index.js",
   "preferGlobal": true,
