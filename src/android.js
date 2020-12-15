@@ -79,7 +79,7 @@ module.exports = {
         });
         const projectInfo = require(projectDir + 'package.json');
         // Android x migration should be run even when hooks are disabled
-        if (!androidXMigrationEnabled && fs.existsSync(`${projectDir}/plugins/cordova-plugin-androidx-adapter/apply.js`)) {
+        if (androidXMigrationEnabled && fs.existsSync(`${projectDir}/plugins/cordova-plugin-androidx-adapter/apply.js`)) {
             const migrationScript = `${projectDir}/plugins/migrateToAndroidX.js`;
             fs.writeFileSync(migrationScript, 
                 'require(\'./cordova-plugin-androidx-adapter/apply.js\')();');
