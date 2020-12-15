@@ -233,7 +233,8 @@ module.exports = {
                     storePassword: args.aStorePassword,
                     keyAlias: args.aKeyAlias,
                     keyPassword: args.aKeyPassword,
-                    packageType: args.packageType
+                    packageType: args.packageType,
+                    androidXMigrationEnabled: !args.allowHooks && args.androidXMigrationEnabled
                 });
             } else if (args.platform === 'ios') {
                 result = await ios.build({

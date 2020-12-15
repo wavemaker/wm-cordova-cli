@@ -46,6 +46,12 @@ const args = require('yargs')
         describe: '(Android) path to keystore',
         type: 'string'
     })
+    .option('axm', {
+        alias: 'androidXMigrationEnabled',
+        describe: 'Run android x migration (true or false)',
+        default: false,
+        type: 'boolean'
+    })
     .option('asp', {
         alias: 'aStorePassword',
         describe: '(Android) password to keystore',
