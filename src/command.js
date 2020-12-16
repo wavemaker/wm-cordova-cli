@@ -3,6 +3,7 @@ const ios = require('./ios');
 const android = require('./android');
 const logger = require('./logger');
 const config = require('./config');
+const semver = require('semver');
 const {
     exec
 } = require('./exec');
@@ -72,11 +73,12 @@ async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordov
     }
     packageJson.dependencies['cordova-ios'] = packageJson.dependencies['cordova-ios'] || cordovaIosVersion;
     packageJson.dependencies['cordova-android'] = packageJson.dependencies['cordova-android'] || cordovaAndroidVersion;
+    const canUseCache = semver.gte(cordovaVersion, '9.0.0');
     await Promise.all(config.findall('./plugin').map(e => {
         return Promise.resolve().then(() => {
             const name = e.attrib['name'];
             let spec = e.attrib['spec'];
-            if (spec.startsWith('http')) {
+            if (canUseCache && spec.startsWith('http')) {
                 return npmCache.get(name, spec).then(cache => {
                     if (spec != cache) {
                         data = data.replace(spec, cache);
