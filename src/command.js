@@ -73,14 +73,17 @@ async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordov
     }
     packageJson.dependencies['cordova-ios'] = packageJson.dependencies['cordova-ios'] || cordovaIosVersion;
     packageJson.dependencies['cordova-android'] = packageJson.dependencies['cordova-android'] || cordovaAndroidVersion;
-    const canUseCache = semver.gte(cordovaVersion, '9.0.0');
     await Promise.all(config.findall('./plugin').map(e => {
         return Promise.resolve().then(() => {
             const name = e.attrib['name'];
             let spec = e.attrib['spec'];
-            if (canUseCache && spec.startsWith('http')) {
+            if (spec.startsWith('http')) {
                 return npmCache.get(name, spec).then(cache => {
                     if (spec != cache) {
+                        if (cache.startsWith('file://')) {
+                            cache = cache.replace('file://', '');
+                            cache = path.relative(dest, cache);
+                        }
                         data = data.replace(spec, cache);
                     }
                 });
@@ -137,10 +140,11 @@ async function getDefaultDestination(projectDir, platform) {
     return dest;
 }
 
-function disableHooks(projectDir) {
+function disableHooks(projectDir, cordovaVersion) {
     const hooksRunnerPath = projectDir + 'node_modules/cordova-lib/src/hooks/HooksRunner.js';
     let data = fs.readFileSync(hooksRunnerPath).toString();
-    const disableFn = '.fire = function(hook) { console.log(hook + \' hook disabled\'); return Promise.resolve();} || '
+    const usePromise = semver.gte(cordovaVersion, '9.0.0');
+    const disableFn = `.fire = function(hook) { const m = hook + \' hook disabled\'; console.log(m); return ${usePromise ? 'Promise.resolve()' : 'Q(m)'};} || `;
     data = data.replace(/\.fire[\s]*=[\s]/, disableFn);
     fs.writeFileSync(hooksRunnerPath, data);
 }
@@ -220,7 +224,7 @@ module.exports = {
                 cwd: config.src
             });
             if (args.cordovaVersion && !args.allowHooks) {
-                disableHooks(config.src);
+                disableHooks(config.src, args.cordovaVersion);
             }
             let result = {
                 success: false
