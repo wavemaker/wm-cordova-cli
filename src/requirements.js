@@ -8,17 +8,20 @@ const loggerLabel = 'cordova-cli-requirements';
 const semver = require('semver');
 const prompt = require('prompt');
 const VERSIONS = {
-    'NODE': '12.0.0',
-    'JAVA': '1.8.0',
-    'GRADLE': '6.0.1'
+    'NODE': '10.0.0',
+    'POD' : '1.9.0',
+    'JAVA': '1.8.0'
 }
 
-async function checkAvailability(cmd) {
+async function checkAvailability(cmd, transformFn) {
     try {
-        let version = (await exec(cmd, ['--version'])).join('');
-
+        let output = (await exec(cmd, ['--version'])).join('');
+        
+        if (transformFn) {
+            output = transformFn(output);	
+        }	
         // to just return version in x.x.x format
-        version = version.match(/[0-9\.]+/)[0];
+        let version = output.match(/[0-9]+\.[0-9\.]+/)[0];
 
         logger.info({
             'label': loggerLabel,
@@ -60,7 +63,7 @@ module.exports = {
         });
     },
     checkForGradleAvailability: async () => {
-        return await checkAvailability('gradle');
+        return await checkAvailability('gradle', o => o && o.substring(o.indexOf('Gradle')) );
     },
     checkForAndroidStudioAvailability: async () => {
         // ANDROID_HOME environment variable is set or not. If it is set checking if its a valid path or no.
@@ -104,7 +107,7 @@ module.exports = {
         })
 
         try {
-            await exec('sdkmanager', ['--list']); 
+            await exec(sdkPath, ['--list']); 
         } catch(e) {
             console.error(e);
             return false;
@@ -137,9 +140,11 @@ module.exports = {
         return await checkAvailability('git');
     },
 
-    // TODO: cocoapod for ios
+    isCocoaPodsIstalled: async () => {
+        return await checkAvailability('pod');
+    },
 
-    validate: (keyStore, storePassword, keyAlias, keyPassword) => {
+    validateForAndroid: (keyStore, storePassword, keyAlias, keyPassword) => {
         let errors = [];
         if (!(keyStore && fs.existsSync(keyStore))) {
             errors.push(`keystore is required (valid file): ${keyStore}`);
@@ -152,6 +157,23 @@ module.exports = {
         }
         if (!storePassword) {
             errors.push('storePassword is required.');
+        }
+        return errors;
+    },
+
+    validateForIos: (certificate, password, provisionalFilePath, packageType) => {
+        let errors = [];
+        if (!(certificate && fs.existsSync(certificate))) {
+            errors.push(`p12 certificate does not exists : ${certificate}`);
+        }
+        if (!password) {
+            errors.push('password to unlock certificate is required.');
+        }
+        if (!(provisionalFilePath && fs.existsSync(provisionalFilePath))) {
+            errors.push(`Provisional file does not exists : ${provisionalFilePath}`);
+        }
+        if (!packageType) {
+            errors.push('Package type is required.');
         }
         return errors;
     }

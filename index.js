@@ -1,4 +1,12 @@
 #!/usr/bin/env node
+const updateNotifier = require('update-notifier');
+const pkg = require('./package.json');
+updateNotifier({
+    pkg: pkg,
+    updateCheckInterval : 60 * 60 * 1000
+}).notify({
+	defer: false
+});
 const {
     build
 } = require('./src/command');
@@ -38,6 +46,12 @@ const args = require('yargs')
         describe: '(Android) path to keystore',
         type: 'string'
     })
+    .option('axm', {
+        alias: 'androidXMigrationEnabled',
+        describe: 'Run android x migration (true or false)',
+        default: false,
+        type: 'boolean'
+    })
     .option('asp', {
         alias: 'aStorePassword',
         describe: '(Android) password to keystore',
@@ -74,6 +88,13 @@ const args = require('yargs')
         default: 'development',
         choices: ['development', 'production']
     })
+    .option('ah', {
+        alias: 'allowHooks',
+        describe: 'true or false',
+        default: false,
+        type: 'boolean'
+    })
+
     .help('h')
     .alias('h', 'help').argv;
 try {

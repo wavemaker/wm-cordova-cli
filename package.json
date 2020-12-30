@@ -1,8 +1,9 @@
 {
-  "name": "wm-cordova-cli",
-  "version": "1.0.0",
+  "name": "@wavemaker/wm-cordova-cli",
+  "version": "1.2.0",
   "description": "command line tool to easily build a wavemaker mobile project",
   "main": "index.js",
+  "preferGlobal": true,
   "bin": {
     "wm-cordova": "./index.js"
   },
@@ -15,6 +16,7 @@
     "mobile"
   ],
   "author": "WaveMaker Inc.,",
+  "repository": "https://github.com/wavemaker/wm-cordova-cli",
   "license": "MIT",
   "dependencies": {
     "axios": "^0.19.2",
@@ -22,9 +24,10 @@
     "execa": "^4.0.3",
     "fs-extra": "^9.0.1",
     "md5": "^2.3.0",
+    "prompt": "^1.0.0",
     "semver": "^7.3.2",
+    "update-notifier": "^4.1.1",
     "winston": "^3.3.3",
-    "yargs": "^15.4.0",
-    "prompt": "^1.0.0"
+    "yargs": "^15.4.0"
   }
 }

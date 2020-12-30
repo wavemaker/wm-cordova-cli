@@ -6,7 +6,7 @@ const {
 
 const logger = require('./logger');
 const { 
-    validate, 
+    validateForAndroid, 
     hasValidNodeVersion,
     hasValidJavaVersion,
     checkForGradleAvailability,
@@ -39,7 +39,8 @@ module.exports = {
             storePassword,
             keyStore,
             cordovaAndroidVersion,
-            packageType
+            packageType,
+            androidXMigrationEnabled
         } = args;
         if (packageType === 'development' && !keyStore) {
             keyStore = __dirname + '/../defaults/android-debug.keystore';
@@ -54,7 +55,7 @@ module.exports = {
                 success: false
             }
         }
-        const errors = validate(keyStore, storePassword, keyAlias, keyPassword);
+        const errors = validateForAndroid(keyStore, storePassword, keyAlias, keyPassword);
         if (errors.length > 0) {
             return {
                 success: false,
@@ -77,6 +78,15 @@ module.exports = {
             cwd: projectDir
         });
         const projectInfo = require(projectDir + 'package.json');
+        // Android x migration should be run even when hooks are disabled
+        if (androidXMigrationEnabled && fs.existsSync(`${projectDir}/plugins/cordova-plugin-androidx-adapter/apply.js`)) {
+            const migrationScript = `${projectDir}/plugins/migrateToAndroidX.js`;
+            fs.writeFileSync(migrationScript, 
+                'require(\'./cordova-plugin-androidx-adapter/apply.js\')();');
+            await exec('node', [migrationScript], {
+                cwd: projectDir
+            });
+        }
         logger.info({
             label: loggerLabel,
             message: 'Prepared for cordova android'
