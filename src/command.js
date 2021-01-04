@@ -29,7 +29,13 @@ async function setupBuildDirectory(src, dest) {
             if (response !== 'y' && response !== 'yes') {
                 process.exit();
             }
-            fs.unlinkSync(target);
+            // using removeSync when target is directory and unlinkSync works when target is file.
+            const fsStat = fs.lstatSync(target);
+            if (fsStat.isDirectory()) {
+                fs.removeSync(target);
+            } else if (fsStat.isFile()) {
+                fs.unlinkSync(target);
+            }
         }
     }
     fs.mkdirsSync(target);
@@ -92,7 +98,19 @@ async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordov
                 fs.mkdirSync(extractFolder, {
                     recursive: true
                 });
-                return extractZip(dest + 'www/cordova-plugins/'+ spec, extractFolder)
+                // this pluginFolder contains all the plugin zip files
+                let pluginsFolder = dest;
+                if (!fs.existsSync(pluginsFolder + spec)) {
+                    // fallback to previous implementation
+                    if (fs.existsSync(dest + 'www/cordova-plugins/')) {
+                        pluginsFolder = dest + 'www/cordova-plugins/';
+                    }
+                    if (!fs.existsSync(pluginsFolder + spec)) {
+                        return Promise.reject('Plugin zip ' + pluginsFolder + spec + ' is not found.');
+                    }
+                }
+
+                return extractZip(pluginsFolder + spec, extractFolder)
                     .then(() => {
                         const target = fs.readdirSync(extractFolder).find(c => {
                             const d = extractFolder + c;
@@ -105,6 +123,9 @@ async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordov
     }));
     if (fs.existsSync(dest + 'www/cordova-plugins')) {
         await exec('rm', ['-rf', dest + 'www/cordova-plugins']);
+    }
+    if (fs.existsSync(dest + 'plugins')) {
+        await exec('rm', ['-rf', dest + 'plugins']);
     }
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
     fs.writeFileSync(projectDir + 'config.xml', data);
@@ -187,9 +208,12 @@ module.exports = {
                     zipFile,
                     '-d',
                     args.src
-                ])
+                ]);
             }
             args.src = path.resolve(args.src) + '/';
+            if (isZipFile) {
+                args.src = args.src + folderName;
+            }
             if(!args.dest) {
             	args.dest = await getDefaultDestination(args.src, args.platform);
             }
