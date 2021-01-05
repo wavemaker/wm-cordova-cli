@@ -19,7 +19,7 @@
   "repository": "https://github.com/wavemaker/wm-cordova-cli",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "elementtree": "^0.1.7",
     "execa": "^4.0.3",
     "fs-extra": "^9.0.1",
