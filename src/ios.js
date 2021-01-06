@@ -13,6 +13,7 @@ const {
     isCocoaPodsIstalled,
     validateForIos
  } = require('./requirements');
+ const pparse = require('mobileprovision-parse');
 
 async function importCertToKeyChain(keychainName, certificate, certificatePassword) {
     await exec('security', ['create-keychain', '-p', keychainName, keychainName], {log: false});
@@ -74,6 +75,21 @@ async function extractTeamId(provisionalFile) {
 async function getUsername() {
     const content = await exec('id', ['-un'], false);
     return content[0];
+}
+
+async function getPackageType(provisionalFile) {
+    const data = await pparse(provisionalFile);
+    //data.
+    if (data.type === 'appstore') {
+        return 'app-store';
+    }
+    if (data.type === 'inhouse') {
+        return 'enterprise';
+    } 
+    if (data.type === 'adhoc') {
+        return 'ad-hoc';
+    }
+    throw new Error('Not able find the type of provisioning file.');
 }
 
 module.exports = {
@@ -147,11 +163,15 @@ module.exports = {
                 label: loggerLabel,
                 message: 'Prepared for cordova ios'
             });
+            let provisionalType = 'development';
+            if (packageType === 'production') {
+                provisionalType = await getPackageType(provisionalFile);
+            }
             await exec(cordova, [
                 'build', 'ios', '--verbose', '--device',
                 packageType === 'production' ? '--release' : '--debug',
                 `--codeSignIdentity="${codeSignIdentity}"`,
-                `--packageType="${packageType === 'production' ? 'app-store' : 'development'}"`,
+                `--packageType="${provisionalType}"`,
                 `--developmentTeam="${developmentTeamId}"`,
                 `--provisioningProfile="${provisionuuid}"`,
                 `--buildFlag="-UseModernBuildSystem=${useModernBuildSystem}"`,
