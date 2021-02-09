@@ -12,6 +12,7 @@ const et = require('elementtree');
 const path = require('path');
 const npmCache = require('./npm-cache');
 const { showConfirmation } = require('./requirements');
+const { isDirectory } = require('./utils');
 
 const loggerLabel = 'wm-cordova-cli';
 
@@ -184,6 +185,33 @@ function setPreferences(projectDir, args) {
     args.cordovaIosVersion = args.cordovaIosVersion || args.civ ||preferenceValue('wm-cordova-ios') || phonegapCli[2];
 }
 
+function encodePageContent(str) {
+    return encodeURIComponent(str).replace(/\s/g, '+');
+}
+
+function generatePages(src) {
+    src += src.endsWith('/') ? '' : '/';
+    const pagesDir = src + 'www/pages/';
+    if (!fs.existsSync(pagesDir)) {
+        console.warn(`No folder exists at ${pagesDir}`);
+        return;
+    }
+    fs.readdirSync(pagesDir).forEach(p => {
+        try {
+            const pageDir = pagesDir + p + '/';
+            if (isDirectory(pageDir)) {
+                fs.writeFileSync(pageDir + 'page.min.json', JSON.stringify({
+                    markup: encodePageContent(fs.readFileSync(pageDir + p + '.html', "utf8")),
+                    script: encodePageContent(fs.readFileSync(pageDir + p + '.js', "utf8")),
+                    styles: encodePageContent(fs.readFileSync(pageDir + p + '.css', "utf8")),
+                    variables: encodePageContent(fs.readFileSync(pageDir + p + '.variables.json', "utf8"))
+                }, null, 2));
+            }
+        } catch(e) {
+            console.warn('exception occurred while preparing the page ' + p, e);
+        }
+    });
+}
 
 module.exports = {
     build: async function (args) {
@@ -253,6 +281,7 @@ module.exports = {
             let result = {
                 success: false
             };
+            generatePages(args.dest);
             if (args.platform === 'android') {
                 result = await android.build({
                     cordova: cordovaToUse,
@@ -307,5 +336,6 @@ module.exports = {
             console.error(e);
             return { success : false };
         }
-    }
+    },
+    generatePages: generatePages
 };
