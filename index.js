@@ -12,7 +12,7 @@ const {
 } = require('./src/command');
 
 const args = require('yargs')
-    .command('generate pages [src]', 'prepare for build', yargs => {
+    .command('generate pages [src]', 'generates page.min.json out of page markup, script, sttyles and variables', yargs => {
         yargs.positional('src', {
             describe: 'path of cordova project',
             default: './',
