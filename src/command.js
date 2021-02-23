@@ -239,9 +239,6 @@ module.exports = {
                 ]);
             }
             args.src = path.resolve(args.src) + '/';
-            if (isZipFile) {
-                args.src = args.src + folderName;
-            }
             if(!args.dest) {
             	args.dest = await getDefaultDestination(args.src, args.platform);
             }
