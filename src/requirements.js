@@ -95,22 +95,20 @@ module.exports = {
         // file extension has to be added for windows os for existsSync to work.
         sdkPath = os.type().includes('Windows') ? sdkPath + '.bat' : sdkPath;
 
-        if (!fs.existsSync(sdkPath)) {
-            logger.error({
+        if (fs.existsSync(sdkPath)) {
+            logger.info({
+                'label': loggerLabel,
+                'message': 'Found Android SDK manager at ' + sdkPath
+            });
+            try {
+                await exec(sdkPath, ['--list']); 
+            } catch(e) {
+                console.warn(e);
+            }
+        } else {
+            logger.warn({
                 'label': loggerLabel,
                 'message': 'Failed to find \'android-sdk\' in your \'PATH\'. Install Android-Studio before proceeding to build.'});
-            return false;
-        }
-        logger.info({
-            'label': loggerLabel,
-            'message': 'Found Android SDK manager at ' + sdkPath
-        })
-
-        try {
-            await exec(sdkPath, ['--list']); 
-        } catch(e) {
-            console.error(e);
-            return false;
         }
         return true;
     },
