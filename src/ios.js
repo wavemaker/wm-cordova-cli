@@ -13,7 +13,7 @@ const {
     isCocoaPodsIstalled,
     validateForIos
  } = require('./requirements');
- const pparse = require('mobileprovision-parse');
+ const pparse = require('./mobileprovision-parse');
 
 async function importCertToKeyChain(keychainName, certificate, certificatePassword) {
     await exec('security', ['create-keychain', '-p', keychainName, keychainName], {log: false});
