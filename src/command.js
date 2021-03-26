@@ -59,6 +59,20 @@ const extractZip = async(zip, dest) => {
     });
 };
 
+const findRootPackage = (d) => {
+    var rootPackage = null;
+    if (fs.statSync(d).isDirectory()) {
+        if (fs.existsSync(d + 'package.json')) {
+            return d;
+        }
+        fs.readdirSync(d).find(c => {
+            rootPackage = findRootPackage(d + c + '/');
+            return !!rootPackage;
+        });
+    }
+    return rootPackage;
+};
+
 async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordovaAndroidVersion) {
     const projectDir = dest;
     const packageJsonPath = `${projectDir}package.json`;
@@ -113,11 +127,7 @@ async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordov
 
                 return extractZip(pluginsFolder + spec, extractFolder)
                     .then(() => {
-                        const target = fs.readdirSync(extractFolder).find(c => {
-                            const d = extractFolder + c;
-                            return fs.statSync(d).isDirectory() && fs.existsSync(d + '/package.json');
-                        });
-                        data = data.replace(spec, 'file://' + extractFolder + target);
+                        data = data.replace(spec, findRootPackage(extractFolder));
                     });
             }
         });
