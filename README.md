@@ -39,7 +39,8 @@ wm-cordova build android <src_dir> <dest_dir> [additional_arguments]
 |**\-\-aStorePassword**|Password to key store|
 |**\-\-aKeyAlias**|Alias name of the key|
 |**\-\-aKeyPassword**|Key Password|
-|**\-\-packageType**|**DEFAULT:** development<br>development or production<br>Use ‘production’ with keystore specified.|
+|**\-\-packageType**|**DEFAULT:** apk<br>'apk' or 'bundle' (for aab)
+|**\-\-buildType**|**DEFAULT:** development<br>development or production<br>Use ‘production’ with keystore specified.|
 |**\-\-allowHooks**|**DEFAULT:** false <br> this flag can be used to turn on and off cordova hooks functionality.|
 
   
@@ -91,7 +92,7 @@ wm-cordova build ios <src_dir> <dest_dir> [additional_arguments]
 |**\-\-iCertificate**|Absolute path of P12 certificate location|
 |**\-\-iCertificatePassword**|Password to unlock the certificate.|
 |**\-\-iProvisioningFile**|Absolute path of provisioning file|
-|**\-\-packageType**|**DEFAULT:** development<bR>development or production <br>Use ‘production’ with an AppStore distribution certificate.|
+|**\-\-buildType**|**DEFAULT:** development<bR>development or production <br>Use ‘production’ with an AppStore distribution certificate.|
 |**\-\-allowHooks**|**DEFAULT:** false <br> this flag can be used to turn on and off cordova hooks functionality.|
 
 
