@@ -63,6 +63,12 @@ const args = require('yargs')
                 describe: '(Android) password for key.',
                 type: 'string'
             })
+            .option('p', {
+                alias: 'packageType',
+                describe: 'apk (or) bundle',
+                default: 'apk',
+                choices: ['apk', 'bundle']
+            })
         }, args => {
             args.platform = 'android';
             build(args)
@@ -106,11 +112,20 @@ const args = require('yargs')
             alias: 'cordovaVersion',
             describe: 'Cordova  Version'
         })
-        .option('p', {
-            alias: 'packageType',
-            describe: 'development (or) release',
-            default: 'development',
-            choices: ['development', 'production']
+        .option('bt', {
+            alias: 'buildType',
+            describe: 'development (or) debug (or) production (or) release',
+            default: 'debug',
+            coerce: (val) => {
+                if (val === 'development') {
+                    return 'debug';
+                }
+                if (val === 'production') {
+                    return 'release';
+                }
+                return val;
+            },
+            choices: ['development', 'debug', 'production', 'release']
         })
         .option('ah', {
             alias: 'allowHooks',

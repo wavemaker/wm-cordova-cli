@@ -15,12 +15,13 @@ const {
  } = require('./requirements');
 const loggerLabel = 'android-build';
 
-const buildSigningFile = (path, keyStore, storePassword, keyAlias, keyPassword, buildType) => {
+const buildSigningFile = (path, keyStore, storePassword, keyAlias, keyPassword, buildType, packageType) => {
     const siginingSettings = {
         keystore: keyStore,
         storePassword: storePassword,
         alias: keyAlias,
-        password: keyPassword
+        password: keyPassword,
+        packageType: packageType
     };
     const settings = {
         android : {}
@@ -39,10 +40,11 @@ module.exports = {
             storePassword,
             keyStore,
             cordovaAndroidVersion,
+            buildType,
             packageType,
             androidXMigrationEnabled
         } = args;
-        if (packageType === 'development' && !keyStore) {
+        if (buildType === 'debug' && !keyStore) {
             keyStore = __dirname + '/../defaults/android-debug.keystore';
             keyAlias = 'androiddebugkey';
             keyPassword = 'android';
@@ -92,14 +94,14 @@ module.exports = {
             message: 'Prepared for cordova android'
         });
         const settingsPath = projectDir + '__build.json';
-        const buildType = packageType === 'production' ? 'release' : 'debug';
         buildSigningFile(
             settingsPath,
             keyStore,
             storePassword,
             keyAlias,
             keyPassword,
-            buildType
+            buildType,
+            packageType
         );
         await exec(cordova, [
             'build', 'android', '--verbose',
@@ -113,10 +115,15 @@ module.exports = {
             message: 'build completed'
         });
         const output =  projectDir + 'output/android/';
-        const outputFilePath = `${output}${projectInfo.displayName || projectInfo.name}(${projectInfo.version}).${packageType}.apk`;
-        const apkPath = findFile(`${projectDir}platforms/android/app/build/outputs/apk/${packageType === 'production' ? 'release' : 'debug'}`, /\.apk?/);
+        const outputFilePath = `${output}${projectInfo.displayName || projectInfo.name}(${projectInfo.version}).${buildType}.${packageType === 'bundle' ? 'aab': 'apk'}`;
+        let bundlePath = null;
+        if (packageType === 'bundle') {
+            bundlePath = findFile(`${projectDir}platforms/android/app/build/outputs/bundle/${buildType}`, /\.aab?/);
+        } else {
+            bundlePath = findFile(`${projectDir}platforms/android/app/build/outputs/apk/${buildType}`, /\.apk?/);    
+        }
         fs.mkdirSync(output, {recursive: true});
-        fs.copyFileSync(apkPath, outputFilePath);
+        fs.copyFileSync(bundlePath, outputFilePath);
         return {
             success: true,
             output: outputFilePath

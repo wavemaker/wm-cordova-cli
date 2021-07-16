@@ -159,7 +159,7 @@ module.exports = {
         return errors;
     },
 
-    validateForIos: (certificate, password, provisionalFilePath, packageType) => {
+    validateForIos: (certificate, password, provisionalFilePath, buildType) => {
         let errors = [];
         if (!(certificate && fs.existsSync(certificate))) {
             errors.push(`p12 certificate does not exists : ${certificate}`);
@@ -170,8 +170,8 @@ module.exports = {
         if (!(provisionalFilePath && fs.existsSync(provisionalFilePath))) {
             errors.push(`Provisional file does not exists : ${provisionalFilePath}`);
         }
-        if (!packageType) {
-            errors.push('Package type is required.');
+        if (!buildType) {
+            errors.push('Build type is required.');
         }
         return errors;
     }

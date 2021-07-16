@@ -94,7 +94,7 @@ async function getPackageType(provisionalFile) {
 
 module.exports = {
     build: async (args) => {
-        const {
+        let {
             cordova,
             cordovaVersion,
             cordovaIosVersion,
@@ -102,7 +102,8 @@ module.exports = {
             certificate, 
             certificatePassword, 
             provisionalFile,
-            packageType 
+            buildType,
+            packageType
         } = args;
 
         if (!await hasValidNodeVersion() || !await isGitInstalled() || !await isCocoaPodsIstalled()) {
@@ -110,7 +111,7 @@ module.exports = {
                 success: false
             }
         }
-        const errors = validateForIos(certificate, certificatePassword, provisionalFile, packageType);
+        const errors = validateForIos(certificate, certificatePassword, provisionalFile, buildType);
         if (errors.length > 0) {
             return {
                 success: false,
@@ -126,8 +127,6 @@ module.exports = {
             label: loggerLabel,
             message: `provisional UUID : ${provisionuuid}`
         });
-        const codeSignIdentity = packageType === 'production' ? "iPhone Distribution" : "iPhone Developer";
-
         if (semver.satisfies(cordovaVersion, '8.x')) {
             useModernBuildSystem = 'NO';
         }
@@ -163,15 +162,15 @@ module.exports = {
                 label: loggerLabel,
                 message: 'Prepared for cordova ios'
             });
-            let provisionalType = 'development';
-            if (packageType === 'production') {
-                provisionalType = await getPackageType(provisionalFile);
+            packageType = packageType || 'development';
+            if (buildType === 'release') {
+                packageType = await getPackageType(provisionalFile);
             }
             await exec(cordova, [
                 'build', 'ios', '--verbose', '--device',
-                packageType === 'production' ? '--release' : '--debug',
-                `--codeSignIdentity="${codeSignIdentity}"`,
-                `--packageType="${provisionalType}"`,
+                `--${buildType}`,
+                `--codeSignIdentity="iPhone Developer"`,
+                `--packageType="${packageType}"`,
                 `--developmentTeam="${developmentTeamId}"`,
                 `--provisioningProfile="${provisionuuid}"`,
                 `--buildFlag="-UseModernBuildSystem=${useModernBuildSystem}"`,
@@ -185,7 +184,7 @@ module.exports = {
                 message: 'build completed'
             });
             const output =  projectDir + 'output/ios/';
-            const outputFilePath = `${output}${projectInfo.displayName || projectInfo.name}(${projectInfo.version}).${packageType}.ipa`;
+            const outputFilePath = `${output}${projectInfo.displayName || projectInfo.name}(${projectInfo.version}).${buildType}.ipa`;
             fs.mkdirSync(output, {recursive: true});
             fs.copyFileSync(findFile(projectDir + 'platforms/ios/build/device', /\.ipa?/), outputFilePath);
             return {

@@ -299,6 +299,7 @@ module.exports = {
                     storePassword: args.aStorePassword,
                     keyAlias: args.aKeyAlias,
                     keyPassword: args.aKeyPassword,
+                    buildType: args.buildType,
                     packageType: args.packageType,
                     androidXMigrationEnabled: !args.allowHooks && args.androidXMigrationEnabled
                 });
@@ -311,7 +312,7 @@ module.exports = {
                     certificate: args.iCertificate,
                     certificatePassword: args.iCertificatePassword,
                     provisionalFile: args.iProvisioningFile,
-                    packageType: args.packageType
+                    buildType: args.buildType,
                 });
             }
             if (result.errors && result.errors.length) {
