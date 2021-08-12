@@ -166,10 +166,11 @@ module.exports = {
             if (buildType === 'release') {
                 packageType = await getPackageType(provisionalFile);
             }
+            const codeSignIdentity = buildType === 'release' ? "iPhone Distribution" : "iPhone Developer";
             await exec(cordova, [
                 'build', 'ios', '--verbose', '--device',
                 `--${buildType}`,
-                `--codeSignIdentity="iPhone Developer"`,
+                `--codeSignIdentity="${codeSignIdentity}"`,
                 `--packageType="${packageType}"`,
                 `--developmentTeam="${developmentTeamId}"`,
                 `--provisioningProfile="${provisionuuid}"`,
