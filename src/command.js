@@ -261,7 +261,6 @@ module.exports = {
             }
             await setupBuildDirectory(args.src, args.dest);
             setPreferences(args.dest, args);
-            await updatePackageJson(args.dest, args.cordovaVersion, args.cordovaIosVersion, args.cordovaAndroidVersion);
             config.src = args.dest;
             config.outputDirectory = config.src + 'output/';
             fs.mkdirSync(config.outputDirectory, {
@@ -276,6 +275,7 @@ module.exports = {
                 label: loggerLabel,
                 message: `Building at : ${config.src}`
             });
+            await updatePackageJson(args.dest, args.cordovaVersion, args.cordovaIosVersion, args.cordovaAndroidVersion);
             const cordovaToUse = args.cordovaVersion ? config.src + 'node_modules/cordova/bin/cordova' : 'cordova';
             const cordovaVersion = args.cordovaVersion || (await exec('cordova', ['--version'])).join('').match(/[0-9][0-9\.]+/)[0];
             process.env.PWD = config.src;
