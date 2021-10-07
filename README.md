@@ -57,7 +57,7 @@ wm-cordova build android "/path/to/src" \
 --aStorePassword="store_password" \
 --aKeyAlias="key_alias_name" \
 --aKeyPassword="key" \
---packageType="production"
+--buildType="production"
 ~~~
 
 ## IOS build
@@ -104,7 +104,7 @@ wm-cordova build ios "/path/to/src" \
 --iCertificate="/path/to/distribution.p12" \
 --iCertificatePassword="unlock_password" \
 --iProvisioningFile="/path/to/profile.mobileprovision" \
---packageType="production"
+--buildType="production"
 ~~~
 
 
