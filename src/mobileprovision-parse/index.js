@@ -1,6 +1,7 @@
 var htmlDecode = require('htmlencode').htmlDecode
 var child_process = require('child_process')
 var escape = require('shell-argument-escape').escape
+var Path = require('path');
 
 function exec(cmd, opt) {
     opt = Object.assign({
@@ -57,7 +58,7 @@ function getInfo(xml) {
 }
 
 function main(profilePath, cb) {
-    var cmd = `security cms -D -i ${escape(profilePath)}`
+    var cmd = `security cms -D -i ${escape(Path.resolve(profilePath))}`
     return exec(cmd)
         .then(stdout => {
             var info = getInfo(stdout)
