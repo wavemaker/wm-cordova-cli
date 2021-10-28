@@ -130,7 +130,7 @@ const args = require('yargs')
         .option('ah', {
             alias: 'allowHooks',
             describe: 'true or false',
-            default: false,
+            default: true,
             type: 'boolean'
         }).demandCommand(1);
     })
