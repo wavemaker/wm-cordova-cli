@@ -195,8 +195,11 @@ function setPreferences(projectDir, args) {
     args.cordovaIosVersion = args.cordovaIosVersion || args.civ ||preferenceValue('wm-cordova-ios') || phonegapCli[2];
 }
 
-function encodePageContent(str) {
-    return encodeURIComponent(str).replace(/\s/g, '+');
+function readPageFile(p) {
+    if (fs.existsSync(p)) {
+        return encodeURIComponent(fs.readFileSync(p, "utf-8")).replace(/\s/g, '+');
+    }
+    return '';
 }
 
 function generatePages(src) {
@@ -211,10 +214,10 @@ function generatePages(src) {
             const pageDir = pagesDir + p + '/';
             if (isDirectory(pageDir)) {
                 fs.writeFileSync(pageDir + 'page.min.json', JSON.stringify({
-                    markup: encodePageContent(fs.readFileSync(pageDir + p + '.html', "utf8")),
-                    script: encodePageContent(fs.readFileSync(pageDir + p + '.js', "utf8")),
-                    styles: encodePageContent(fs.readFileSync(pageDir + p + '.css', "utf8")),
-                    variables: encodePageContent(fs.readFileSync(pageDir + p + '.variables.json', "utf8"))
+                    markup: readPageFile(pageDir + p + '.html'),
+                    script: readPageFile(pageDir + p + '.js'),
+                    styles: readPageFile(pageDir + p + '.css'),
+                    variables: readPageFile(pageDir + p + '.variables.json') || {}
                 }, null, 2));
             }
         } catch(e) {
