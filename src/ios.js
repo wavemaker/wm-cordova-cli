@@ -18,7 +18,7 @@ const {
 async function importCertToKeyChain(keychainName, certificate, certificatePassword) {
     await exec('security', ['create-keychain', '-p', keychainName, keychainName], {log: false});
     await exec('security', ['unlock-keychain', '-p', keychainName, keychainName], {log: false});
-    await exec('security', ['set-keychain-settings', '-t', '3600', keychainName], {log: false});
+    await exec('security', ['set-keychain-settings', keychainName], {log: false});
     let keychains = await exec('security', ['list-keychains', '-d', 'user'], {log: false});
     keychains = keychains.map(k => k.replace(/[\"\s]+/g, '')).filter(k => k !== '');
     await exec('security', ['list-keychains', '-d', 'user', '-s', keychainName, ...keychains], {log: false});
@@ -32,6 +32,8 @@ async function importCertToKeyChain(keychainName, certificate, certificatePasswo
         '-T', '/usr/bin/productbuild',
         '-T', '/Applications/Xcode.app'], {log: false});
     await exec('security', ['set-key-partition-list', '-S', 'apple-tool:,apple:,codesign', '-s', '-k', keychainName, keychainName], {log: false});
+    await exec('security', ['unlock-keychain', '-p', keychainName, keychainName], {log: false});
+    await exec('security', ['set-keychain-settings', '-t', '3600', keychainName], {log: false});
     logger.info({
         label: loggerLabel,
         message: `Cerificate at (${certificate}) imported in (${keychainName})`
@@ -122,6 +124,7 @@ module.exports = {
         const username = await getUsername();
         const keychainName = `wm-cordova-${random}.keychain`;
         const provisionuuid =  await extractUUID(provisionalFile);
+        let removeKeyChain = () => Promise.resolve();
         let useModernBuildSystem = 'YES';
         logger.info({
             label: loggerLabel,
@@ -140,7 +143,6 @@ module.exports = {
             recursive: true
         })
         const targetProvisionsalPath = `${ppFolder}/${provisionuuid}.mobileprovision`;
-        const removeKeyChain = await importCertToKeyChain(keychainName, certificate, certificatePassword);
         fs.copyFileSync(provisionalFile, targetProvisionsalPath);
         logger.info({
             label: loggerLabel,
@@ -166,6 +168,7 @@ module.exports = {
             if (buildType === 'release') {
                 packageType = await getPackageType(provisionalFile);
             }
+            removeKeyChain = await importCertToKeyChain(keychainName, certificate, certificatePassword);
             const codeSignIdentity = buildType === 'release' ? "iPhone Distribution" : "iPhone Developer";
             await exec(cordova, [
                 'build', 'ios', '--verbose', '--device',
