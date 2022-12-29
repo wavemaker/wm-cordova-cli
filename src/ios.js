@@ -94,6 +94,31 @@ async function getPackageType(provisionalFile) {
     throw new Error('Not able find the type of provisioning file.');
 }
 
+async function turnOffPodCodeSigning(projectDir) {
+    const iosProjectPath = `${projectDir}/platforms/ios`;
+    const podFilePath = `${iosProjectPath}/Podfile`;
+    let podFileContent = fs.readFileSync(podFilePath);
+    if (podFileContent.indexOf(`config.build_settings['CODE_SIGNING_ALLOWED']`) < 0) {
+        podFileContent += `
+        post_install do |installer|
+            installer.pods_project.targets.each do |target|
+            if target.respond_to?(:product_type) and target.product_type == "com.apple.product-type.bundle"
+                target.build_configurations.each do |config|
+                    config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+                end
+            end
+            end
+        end
+        `;
+        fs.writeFileSync(podFilePath, podFileContent, {
+            encoding: 'utf-8'
+        });
+        await exec("pod", ["install", "--verbose"], {
+            cwd: iosProjectPath
+        });
+    }
+}
+
 module.exports = {
     build: async (args) => {
         let {
@@ -156,6 +181,7 @@ module.exports = {
                 label: loggerLabel,
                 message: 'Added cordova ios'
             });
+            await turnOffPodCodeSigning(projectDir);
             await exec(cordova, ['prepare', 'ios', '--verbose'], {
                 cwd: projectDir
             });
