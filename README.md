@@ -10,9 +10,9 @@ The main goal of wm-cordova-cli is to simplify generation of APK or IPA for Wave
 
 -   Linux or MAC or Windows   
 -   Latest Android Studio    
--   Node 10.x ([https://nodejs.org/en/blog/release/v10.18.0/](https://nodejs.org/en/download/))    
+-   Node 14.x ([https://nodejs.org/en/blog/release/v10.18.0/](https://nodejs.org/en/download/))    
 -   GIT ([https://git-scm.com/download](https://git-scm.com/download))    
--   Java 8     
+-   Java 11 (for Wavemaker 11.2 and WaveMaker 10.16 projects) or Java 8 for earlier versions     
 -   Gradle 6 ([https://gradle.org/releases/](https://gradle.org/releases/))    
 -   KeyStore file for production release builds ([https://developer.android.com/studio/publish/app-signing#generate-key](https://developer.android.com/studio/publish/app-signing#generate-key))    
 -   Install wm-cordova-cli (npm install -g @wavemaker/wm-cordova-cli)    
@@ -67,7 +67,7 @@ wm-cordova build android "/path/to/src" \
 -   MAC machine    
 -   Latest XCODE
 -   CocoaPods ([https://guides.cocoapods.org/using/getting-started.html#toc_3](https://guides.cocoapods.org/using/getting-started.html#toc_3))    
--   Node 10.x ([https://nodejs.org/en/blog/release/v10.18.0/](https://nodejs.org/en/download/))    
+-   Node 14.x ([https://nodejs.org/en/blog/release/v10.18.0/](https://nodejs.org/en/download/))    
 -   GIT ([https://git-scm.com/download/mac](https://git-scm.com/download/mac))    
 -   Apple developer or distribution P12 certificates    
 -   Provisioning profile
