@@ -28,7 +28,7 @@
     "prompt": "^1.0.0",
     "semver": "^7.3.2",
     "shell-argument-escape": "^0.1.2",
-    "update-notifier": "^4.1.1",
+    "update-notifier": "^6.0.2",
     "winston": "^3.3.3",
     "yargs": "^15.4.0"
   }
