@@ -12,7 +12,7 @@ const et = require('elementtree');
 const path = require('path');
 const npmCache = require('./npm-cache');
 const { showConfirmation } = require('./requirements');
-const { isDirectory } = require('./utils');
+const { isDirectory, readAndReplaceFileContent } = require('./utils');
 
 const loggerLabel = 'wm-cordova-cli';
 
@@ -140,6 +140,15 @@ async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordov
     }
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
     fs.writeFileSync(projectDir + 'config.xml', data);
+}
+
+async function setIsAppConnectedToPreviewToFalse(projectDir) {
+    const writeFn = function(content) {
+        return content.replace(/isAppConnectedToPreview\(\)/, 'isAppConnectedToPreview() && false');
+    };
+    const mobileScriptDir = `${projectDir}www/wmmobile/scripts`;
+    await readAndReplaceFileContent(`${mobileScriptDir}/wm-mobileloader.js`, writeFn);
+    await readAndReplaceFileContent(`${mobileScriptDir}/wm-mobileloader.min.js`, writeFn);
 }
 
 async function getDefaultDestination(projectDir, platform) {
@@ -278,6 +287,9 @@ module.exports = {
                 label: loggerLabel,
                 message: `Building at : ${config.src}`
             });
+            if (args.buildType === 'release') {
+                await setIsAppConnectedToPreviewToFalse(config.src);
+            }
             await updatePackageJson(args.dest, args.cordovaVersion, args.cordovaIosVersion, args.cordovaAndroidVersion);
             const cordovaToUse = args.cordovaVersion ? config.src + 'node_modules/cordova/bin/cordova' : 'cordova';
             const cordovaVersion = args.cordovaVersion || (await exec('cordova', ['--version'])).join('').match(/[0-9][0-9\.]+/)[0];
