@@ -144,7 +144,7 @@ async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordov
 
 async function setIsAppConnectedToPreviewToFalse(projectDir) {
     const writeFn = function(content) {
-        return content.replace(/isAppConnectedToPreview\(\)/, 'isAppConnectedToPreview() && false');
+        return content.replace(/\.isAppConnectedToPreview\(\)/, '.isAppConnectedToPreview() && false');
     };
     const mobileScriptDir = `${projectDir}www/wmmobile/scripts`;
     await readAndReplaceFileContent(`${mobileScriptDir}/wm-mobileloader.js`, writeFn);
