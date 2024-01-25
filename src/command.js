@@ -73,6 +73,19 @@ const findRootPackage = (d) => {
     return rootPackage;
 };
 
+async function updateConfigXML(projectDir) {
+    await readAndReplaceFileContent(`${projectDir}/config.xml`, c => {
+        // To fix Camera issues in Android 13
+        c = c.replace('<platform name="android">', `
+        <platform name="android">
+            <hook type="before_prepare" src="camera_7.0.0_upgrade_hooks/use-camera-plugin-7.0.0.js" />
+            <hook type="before_compile" src="camera_7.0.0_upgrade_hooks/remove-duplicate-file-permissions.js" />
+        `);
+        return c;
+    });
+    fs.copySync(`${__dirname}/../patches/camera_7.0.0_upgrade_hooks`, `${projectDir}/camera_7.0.0_upgrade_hooks`);
+}
+
 async function updatePackageJson(dest, cordovaVersion, cordovaIosVersion, cordovaAndroidVersion) {
     const projectDir = dest;
     const packageJsonPath = `${projectDir}package.json`;
@@ -290,6 +303,7 @@ module.exports = {
             if (args.buildType === 'release') {
                 await setIsAppConnectedToPreviewToFalse(config.src);
             }
+            await updateConfigXML(args.dest);
             await updatePackageJson(args.dest, args.cordovaVersion, args.cordovaIosVersion, args.cordovaAndroidVersion);
             const cordovaToUse = args.cordovaVersion ? config.src + 'node_modules/cordova/bin/cordova' : 'cordova';
             const cordovaVersion = args.cordovaVersion || (await exec('cordova', ['--version'])).join('').match(/[0-9][0-9\.]+/)[0];
