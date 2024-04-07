@@ -216,7 +216,14 @@ module.exports = {
             const output =  projectDir + 'output/ios/';
             const outputFilePath = `${output}${projectInfo.displayName || projectInfo.name}(${projectInfo.version}).${buildType}.ipa`;
             fs.mkdirSync(output, {recursive: true});
-            fs.copyFileSync(findFile(projectDir + 'platforms/ios/build/device', /\.ipa?/), outputFilePath);
+            let ipaFolder = projectDir + 'platforms/ios/build/Debug-iphoneos';
+            if (!fs.existsSync(ipaFolder)) {
+                ipaFolder = projectDir + 'platforms/ios/build/Release-iphoneos';
+            }
+            if (!fs.existsSync(ipaFolder)) {
+                ipaFolder = projectDir + 'platforms/ios/build/device';
+            }
+            fs.copyFileSync(findFile(ipaFolder, /\.ipa?/), outputFilePath);
             return {
                 success: true,
                 output: outputFilePath

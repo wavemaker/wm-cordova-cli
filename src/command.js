@@ -81,6 +81,8 @@ async function updateConfigXML(projectDir) {
             <hook type="before_prepare" src="camera_7.0.0_upgrade_hooks/use-camera-plugin-7.0.0.js" />
             <hook type="before_compile" src="camera_7.0.0_upgrade_hooks/remove-duplicate-file-permissions.js" />
         `);
+        c = c.replace(/<plugin\s+name="wm-cordova-plugin-filepicker"\s+spec="1.0.6"\/>/, 
+            '<plugin name="wm-cordova-plugin-filepicker" spec="1.0.7"/>');
         return c;
     });
     fs.copySync(`${__dirname}/../patches/camera_7.0.0_upgrade_hooks`, `${projectDir}/camera_7.0.0_upgrade_hooks`);
