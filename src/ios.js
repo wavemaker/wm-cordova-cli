@@ -97,6 +97,10 @@ async function getPackageType(provisionalFile) {
 async function turnOffPodCodeSigning(projectDir) {
     const iosProjectPath = `${projectDir}/platforms/ios`;
     const podFilePath = `${iosProjectPath}/Podfile`;
+    if (!fs.existsSync(podFilePath)) {
+        console.warn('[wm-cordova-cli] Podfile not found, skipping code signing disable step');
+        return;
+    }
     let podFileContent = fs.readFileSync(podFilePath);
     if (podFileContent.indexOf(`config.build_settings['CODE_SIGNING_ALLOWED']`) < 0) {
         podFileContent += `
