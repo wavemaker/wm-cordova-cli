@@ -123,6 +123,25 @@ async function turnOffPodCodeSigning(projectDir) {
     }
 }
 
+function fixCDVURLSchemeHandler(projectDir) {
+    const schemeHandlerPath = path.resolve(projectDir,
+        'platforms/ios/packages/cordova-ios/CordovaLib/Classes/Private/Plugins/CDVWebViewEngine/CDVURLSchemeHandler.m');
+    if (!fs.existsSync(schemeHandlerPath)) {
+        return;
+    }
+    let content = fs.readFileSync(schemeHandlerPath, 'utf-8');
+    const buggy = 'filePath = [resDir URLByAppendingPathComponent:path];';
+    const fixed = 'filePath = [NSURL fileURLWithPath:path];';
+    if (content.includes(buggy)) {
+        content = content.replace(buggy, fixed);
+        fs.writeFileSync(schemeHandlerPath, content, 'utf-8');
+        logger.info({
+            label: loggerLabel,
+            message: 'Fixed CDVURLSchemeHandler /_app_file_ path handling'
+        });
+    }
+}
+
 module.exports = {
     build: async (args) => {
         let {
@@ -185,6 +204,7 @@ module.exports = {
                 label: loggerLabel,
                 message: 'Added cordova ios'
             });
+            fixCDVURLSchemeHandler(projectDir);
             await turnOffPodCodeSigning(projectDir);
             await exec(cordova, ['prepare', 'ios', '--verbose'], {
                 cwd: projectDir
